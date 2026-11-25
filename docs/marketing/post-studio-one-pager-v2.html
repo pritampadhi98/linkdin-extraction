@@ -1,0 +1,93 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Post Studio One-Pager</title><style>
+  @page { size: A4; margin: 0; }
+  :root{
+    --navy:#0b1b3a; --navy2:#13284f; --blue:#0a66c2; --blue-soft:#e8f1fb; --sky:#7fb6ee;
+    --mint:#16a36f; --mint-soft:#e3f6ee; --amber:#e08a00; --amber-soft:#fdf1dc;
+    --ink:#121826; --muted:#5a6478; --line:#e3e7ee; --paper:#ffffff; --bg:#f5f7fb;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:210mm;height:297mm;background:var(--paper)}
+  body{font:10pt/1.4 -apple-system,"Helvetica Neue",Arial,sans-serif;color:var(--ink);overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page{width:210mm;height:297mm;display:flex;flex-direction:column}
+
+  
+  .hero{background:var(--navy);color:#fff;padding:24px 30px 20px;position:relative;overflow:hidden}
+  .hero:before{content:"";position:absolute;right:-110px;top:-150px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(10,102,194,.55),rgba(10,102,194,0) 70%)}
+  .brand{display:flex;align-items:center;gap:9px;margin-bottom:12px;position:relative}
+  .logo{width:28px;height:28px;border-radius:8px;background:var(--blue);display:grid;place-items:center;font-weight:700;font-size:11pt}
+  .brand b{font-size:12.5pt}.brand span{font-size:7.6pt;color:var(--sky);letter-spacing:.16em;text-transform:uppercase;margin-left:6px}
+  h1{font-size:27pt;line-height:1.05;letter-spacing:-.03em;position:relative}
+  h1 em{font-style:normal;color:var(--sky)}
+  .sub{font-size:10pt;color:#c9d6ea;margin-top:8px;position:relative}
+  .eyebrow{font-size:7.6pt;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+  .eyebrow:after{content:"";flex:1;height:1px;background:var(--line)}
+  .eyebrow.red{color:#c0392b}
+  .pf{padding:14px 30px 4px}
+  .cols{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .col{display:flex;flex-direction:column;align-items:stretch}
+  .prob{height:118px;background:#fdeeee;border:1px solid #f6d3d0;border-radius:12px 12px 4px 4px;padding:10px 10px 9px;min-height:84px}
+  .prob .pi{width:26px;height:26px;border-radius:8px;background:#fff;display:grid;place-items:center;margin-bottom:6px}
+  .prob b{display:block;font-size:9.4pt;line-height:1.18;color:#7a1f16}
+  .prob span{display:block;font-size:7.4pt;color:#8a4a44;margin-top:3px;line-height:1.25}
+  .down{text-align:center;color:var(--mint);font-size:11pt;line-height:1;margin:3px 0;font-weight:700}
+  .fix{min-height:120px;background:var(--mint-soft);border:1px solid #bfe8d6;border-radius:4px 4px 12px 12px;padding:9px 10px 10px;flex:1}
+  .fix .n{font-size:22pt;font-weight:800;letter-spacing:-.03em;color:var(--navy);line-height:1}
+  .fix .n small{font-size:9pt;font-weight:700;color:var(--mint);letter-spacing:0;margin-left:2px}
+  .fix b{display:block;font-size:8.6pt;margin-top:4px;line-height:1.2}
+  .fix span{display:block;font-size:7.3pt;color:var(--muted);margin-top:2px;line-height:1.25}
+  .bar2{height:7px;border-radius:4px;background:#d3ece0;margin-top:6px;position:relative;overflow:hidden}
+  .bar2 i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--mint)}
+  .bar2 u{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:#e8a29a;text-decoration:none}
+  .flow{padding:12px 30px 8px;background:var(--bg);margin-top:8px}
+  .steps{display:flex;align-items:flex-start;justify-content:space-between}
+  .step{width:84px;text-align:center}
+  .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;margin:0 auto 4px;background:#fff;border:1px solid var(--line);box-shadow:0 2px 6px rgba(11,27,58,.06)}
+  .step b{display:block;font-size:8.6pt}.step span{font-size:7.2pt;color:var(--muted)}
+  .arrow{margin-top:13px;color:#b6bfcd}
+  .step.hl .ic{background:var(--blue);border-color:var(--blue)}
+  .lower{padding:12px 30px 12px;display:grid;grid-template-columns:1.05fr .95fr;gap:12px;flex:1}
+  .proof{border:1px solid var(--line);border-radius:14px;padding:11px 13px;background:#fff}
+  .big{display:flex;align-items:baseline;gap:8px;margin:0 0 2px}
+  .big b{font-size:26pt;letter-spacing:-.03em;color:var(--navy)}.big span{font-size:9pt;color:var(--muted)}
+  .note{font-size:6.8pt;color:var(--muted);margin-top:2px}
+  .tiles{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:7px}
+  .tile{border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;justify-content:center;background:var(--bg)}
+  .tile .t{font-size:21pt;font-weight:800;letter-spacing:-.03em;color:var(--blue);line-height:1.05}
+  .tile b{display:block;font-size:8.6pt;line-height:1.2;margin-top:1px}
+  .tile.d{background:var(--navy);color:#fff}.tile.d .t{color:var(--sky)}
+  .trustrow{display:flex;gap:6px;flex-wrap:wrap;padding:0 30px 10px}
+  .tb{font-size:7.6pt;font-weight:700;padding:5px 9px;border-radius:999px;background:var(--mint-soft);color:#0d7a53;display:flex;gap:5px;align-items:center}
+  .foot{background:var(--navy);color:#fff;padding:13px 30px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .foot h3{font-size:13pt;letter-spacing:-.01em}.foot p{font-size:8.4pt;color:#c9d6ea}
+  .cta{background:var(--blue);border-radius:12px;padding:9px 14px}
+  .cta small{display:block;font-size:7.2pt;letter-spacing:.14em;text-transform:uppercase;color:#cfe3f8}
+  .cta b{font-family:ui-monospace,Menlo,monospace;font-size:8.8pt}
+  svg text{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif}
+</style></head><body><div class="page">
+<section class="hero"><div class="brand"><div class="logo">PS</div><b>Post Studio</b><span>for LinkedIn</span></div>
+<h1>Your best work never reaches LinkedIn.<br><em>Now it does, in your voice.</em></h1>
+<p class="sub">Plan the week, write it like you, make it read human, and publish only what you approve.</p></section>
+<section class="pf"><div class="eyebrow red">Sound familiar?  →  Here is what changes</div><div class="cols"><div class="col"><div class="prob"><div class="pi"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><b>Not enough time to post?</b><span>Great work ships. The post never gets written.</span></div>
+<div class="down">↓</div><div class="fix"><div class="n">1–7<small>posts</small></div><b>planned for your week at once</b><span>Pick topics, choose how many, then schedule them on a calendar. A worker posts on time.</span></div></div><div class="col"><div class="prob"><div class="pi"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 14h.01M15 14h.01"/></svg></div><b>Do your posts read like GPT?</b><span>Dashes, "delve", "game-changer" give it away.</span></div>
+<div class="down">↓</div><div class="fix"><div class="n">39→83<small>/100</small></div><b>human score on one sample draft</b><span>Strips hidden characters, long dashes and AI words, then scores it. 70+ is ready.</span><div class="bar2"><u style="width:39%"></u><i style="width:0"></i></div><div class="bar2" style="margin-top:3px"><i style="width:83%"></i></div></div></div><div class="col"><div class="prob"><div class="pi"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><b>Doesn’t sound like you?</b><span>Generic posts with generic claims.</span></div>
+<div class="down">↓</div><div class="fix"><div class="n">3<small>easy steps</small></div><b>set up once, plan, approve</b><span>Your voice profile and your own proof drive the draft. Unknown facts become blanks, not guesses.</span></div></div><div class="col"><div class="prob"><div class="pi"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M12 8v4M12 16h.01"/></svg></div><b>Afraid of a wrong or leaked fact?</b><span>One slip in public is hard to undo.</span></div>
+<div class="down">↓</div><div class="fix"><div class="n">0<small>posts</small></div><b>go live without a named approver</b><span>Blocks client names and blanks. Every number must match your profile, or you confirm it.</span></div></div></div>
+<div class="note" style="margin-top:5px">39→83 is one sample draft run through the humanizer. Your results will vary with your draft.</div></section>
+<section class="flow"><div class="eyebrow">Three guided steps</div><div class="steps"><div class="step " style="width:200px"><div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><b>1 Set up once</b><span>sign in, add your voice and who you write for</span></div><div class="arrow">→</div><div class="step " style="width:200px"><div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div><b>2 Plan and draft</b><span>pick topics, humanize, safety check</span></div><div class="arrow">→</div><div class="step hl" style="width:200px"><div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4v-9zM7 11l4-8a2.5 2.5 0 0 1 3 2.5V9h5a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7"/></svg></div><b>3 Approve and publish</b><span>your yes, then schedule and track</span></div></div>
+  </section>
+<section class="lower"><div class="proof"><div class="eyebrow" style="margin-bottom:3px">Proof, not promises</div>
+<div class="big"><b>607</b><span>impressions in about 2 days</span></div><svg viewBox="0 0 330 158" width="100%" aria-label="Impressions: 357 at 2 hours, 487 at 17 hours, 607 at 2 days">
+<g stroke="#eef1f5"><line x1="34" y1="14" x2="322" y2="14"/><line x1="34" y1="56" x2="322" y2="56"/><line x1="34" y1="98" x2="322" y2="98"/></g>
+<line x1="34" y1="140" x2="322" y2="140" stroke="#c9d0db"/>
+<g font-size="8" fill="#5a6478" text-anchor="end"><text x="29" y="17">600</text><text x="29" y="59">400</text><text x="29" y="101">200</text><text x="29" y="143">0</text></g>
+<g font-size="8" fill="#5a6478"><text x="34" y="153">Posted</text><text x="136" y="153" text-anchor="middle">17h</text><text x="314" y="153" text-anchor="end">2 days</text></g>
+<path d="M34,140 L46,65 L136,37.7 L322,12.5 L322,140 Z" fill="#0a66c2" opacity=".08"/>
+<polyline points="34,140 46,65 136,37.7 322,12.5" fill="none" stroke="#0a66c2" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<g fill="#0a66c2" stroke="#fff" stroke-width="2"><circle cx="46" cy="65" r="5"/><circle cx="136" cy="37.7" r="5"/><circle cx="322" cy="12.5" r="5"/></g>
+<g font-size="9" font-weight="700" fill="#121826"><text x="54" y="82">357 · 2h</text><text x="136" y="28" text-anchor="middle">487</text><text x="312" y="30" text-anchor="end">607</text></g></svg>
+<div class="note">Real readings from the first post published with Post Studio. Results vary by post and audience.</div></div>
+<div class="tiles"><div class="tile "><div class="t">2</div><b>safety checks: at approval and again right before posting</b></div><div class="tile "><div class="t">6</div><b>humanizer checks on every draft</b></div><div class="tile "><div class="t">70+</div><b>human score counts as ready</b></div><div class="tile "><div class="t">3,000</div><b>character guard before approval</b></div><div class="tile d"><div class="t">21</div><b>hook formulas to start from</b></div><div class="tile d"><div class="t">12</div><b>part rubric to score your profile out of 100</b></div></div></section>
+<div class="trustrow"><span class="tb"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0d7a53" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Human approves every post</span><span class="tb"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0d7a53" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Official LinkedIn API, no bots</span><span class="tb"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0d7a53" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Keys stay on your machine</span><span class="tb"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0d7a53" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Numbers checked against your proof</span><span class="tb"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0d7a53" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Runs with your own Claude</span></div>
+<section class="foot"><div><h3>Post more. Worry less.</h3><p>Your voice, your facts, your approval. Every time.</p></div>
+<div class="cta"><small>Get started</small><b>github.com/pritampadhi98/linkdin-extraction</b></div></section>
+</div></body></html>

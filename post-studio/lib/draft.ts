@@ -4,10 +4,11 @@ import os from "node:os";
 import path from "node:path";
 import { structured } from "./llm";
 import { loadSettings } from "./settings";
+import { skillDir } from "./skills";
 import { z } from "zod";
 
 const HOME = os.homedir();
-const LI_POST_DIR = process.env.LI_POST_DIR ?? path.join(HOME, ".claude/skills/li-post");
+const LI_POST_DIR = process.env.LI_POST_DIR ?? skillDir("li-post");
 const VOICE_FILE = process.env.VOICE_FILE ?? path.join(HOME, ".claude/linkedin/voice.md");
 
 export const DraftSchema = z.object({
@@ -71,22 +72,34 @@ export { ClaudeError as DraftError } from "./claude";
 
 export type Trend = { keyword: string; hashtag: string | null; why: string; angle: string };
 
-export async function draftPost(idea: string, facts: string, trend?: Trend): Promise<Draft & { model: string }> {
+export async function draftPost(idea: string, facts: string, trends: Trend[] = []): Promise<Draft & { model: string }> {
   const [system, voice, settings] = await Promise.all([systemPrompt(), voiceProfile(), loadSettings()]);
   const hashtagRule = `\n\nHASHTAG RULE: end the post with exactly ${settings.hashtagCount} relevant, commonly used hashtags on one line (fewer only if that many real ones don't fit).`;
-  const trendBlock = trend
-    ? `\n\n<trending_topic>
-Topic: ${trend.keyword}${trend.hashtag ? ` (${trend.hashtag})` : ""}
-What's happening (from a web search; treat as context, not as your facts): ${trend.why}
-Suggested angle: ${trend.angle || "(none)"}
-</trending_topic>
+  const topics = trends
+    .map((t, i) => `<trending_topic n="${i + 1}">
+Topic: ${t.keyword}${t.hashtag ? ` (${t.hashtag})` : ""}
+What's happening (from a web search; treat as context, not as your facts): ${t.why}
+Suggested angle: ${t.angle || "(none)"}
+</trending_topic>`)
+    .join("\n");
+  const trendBlock = !trends.length
+    ? ""
+    : trends.length === 1
+      ? `\n\n${topics}
 
 Write a timely post that connects this topic to the user's OWN experience from the voice profile's proof list and the facts below.
 - Mention the topic by name in the first two lines so it's timely.
 - Don't restate news details beyond "What's happening", and don't add version numbers, dates or statistics about the topic.
 - If the user has no real experience that connects to the topic, don't fake one: ask 1-3 questions instead.
 - Use the hashtag above as one of the hashtags if it fits.`
-    : "";
+      : `\n\n${topics}
+
+The user picked these ${trends.length} topics. Write ONE timely post around a single idea that links them, grounded in the user's OWN experience from the voice profile's proof list and the facts below.
+- Name the main topic in the first two lines so it's timely; work the others in where they genuinely connect.
+- If they don't all connect naturally, build the post around the strongest one and leave the rest out. Never force a link; say which ones you left out in your notes.
+- Don't restate news details beyond each "What's happening", and don't add version numbers, dates or statistics about the topics.
+- If the user has no real experience that connects, don't fake one: ask 1-3 questions instead.
+- Prefer the topics' hashtags (where they fit) for the hashtag line.`;
   const { data, via } = await structured({
     schema: DraftSchema,
     system,

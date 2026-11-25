@@ -1,11 +1,10 @@
 import "server-only";
 import { spawn } from "node:child_process";
-import os from "node:os";
 import path from "node:path";
+import { skillDir } from "./skills";
 
-// The li-human skill installed from the open-source LinkedIn agent skill pack.
-const SKILL_DIR =
-  process.env.LI_HUMAN_DIR ?? path.join(os.homedir(), ".claude/skills/li-human");
+// The li-human skill (installed in ~/.claude/skills, or the copy bundled in post-studio/skills).
+const SKILL_DIR = process.env.LI_HUMAN_DIR ?? skillDir("li-human");
 
 export type HumanizeReport = {
   invisible: { name: string; count: number; action: string }[];

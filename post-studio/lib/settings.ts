@@ -15,6 +15,9 @@ export type Settings = {
   queuePaused: boolean;
   hashtagCount: number; // how many hashtags drafts and rewrites end with (1-8)
   linkPlacement: LinkPlacement; // reference links: in a first comment (copied by you) or at the end of the post
+  audience: string; // who you write for (Onboarding → About you); used by trending research and planning
+  focus: string; // optional topic focus, e.g. "web performance"
+  people: string; // optional people or companies to be visible to, one per line; used by the profile plan
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -28,6 +31,9 @@ export const DEFAULT_SETTINGS: Settings = {
   queuePaused: false,
   hashtagCount: 3,
   linkPlacement: "comment",
+  audience: "",
+  focus: "",
+  people: "",
 };
 
 export const clampHashtags = (n: unknown) => {
@@ -60,6 +66,9 @@ export async function loadSettings(): Promise<Settings> {
       queuePaused: s.queuePaused === true,
       hashtagCount: s.hashtagCount === undefined ? DEFAULT_SETTINGS.hashtagCount : clampHashtags(s.hashtagCount),
       linkPlacement: s.linkPlacement === "post" ? "post" : "comment",
+      audience: typeof s.audience === "string" ? s.audience : "",
+      focus: typeof s.focus === "string" ? s.focus : "",
+      people: typeof s.people === "string" ? s.people : "",
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

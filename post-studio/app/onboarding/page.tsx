@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ProfileScore } from "../Growth";
 import type { Approval } from "@/lib/log";
 import type { Settings, Slot } from "@/lib/settings";
 import { api, useConfirm, useStudio, useToast } from "../components/providers";
@@ -42,6 +44,7 @@ export default function SettingsPage() {
   const [liVersion, setLiVersion] = useState<string | null>(null);
   const [newSlot, setNewSlot] = useState<Slot>({ day: 1, time: "08:30" });
   const [busy, setBusy] = useState<string | null>(null);
+  const [scored, setScored] = useState(false);
 
   const loadLi = () => api<LinkedInStatus>("/api/linkedin/status").then(setLi).catch(() => {});
   const load = () =>
@@ -66,7 +69,7 @@ export default function SettingsPage() {
       const [kind, text] = CONNECT_MESSAGES[q] ?? ["error", q];
       const detail = p.get("detail");
       setNotice([kind, `${text}${detail ? ` LinkedIn says: ${detail}` : ""}`]);
-      window.history.replaceState(null, "", "/settings");
+      window.history.replaceState(null, "", "/onboarding");
       refresh();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,16 +100,33 @@ export default function SettingsPage() {
   }
 
   const slotsDirty = s && saved && JSON.stringify(s.slots) !== JSON.stringify(saved.slots);
-  const nameDirty = s && saved && s.approverName.trim() !== saved.approverName;
+  const aboutDirty = !!s && !!saved && (["approverName", "audience", "focus", "people"] as const).some((k) => s[k].trim() !== saved[k]);
+  const progress = [
+    { id: "connect", label: "Connect LinkedIn", done: !!li?.connected },
+    { id: "about", label: "About you", done: !!saved?.approverName && !!saved?.audience },
+    { id: "profile", label: "Your profile", done: scored },
+    { id: "rules", label: "Posting rules", done: !!saved && saved.slots.length > 0 },
+  ];
+  const doneCount = progress.filter((x) => x.done).length;
 
   return (
     <div className="page">
-      <PageHead title="Settings" sub="Your LinkedIn connection, posting schedule and safety rules." />
+      <PageHead title="Onboarding" sub="Four quick steps. Everything you enter here is reused when you plan, write and publish." />
+
+      <nav className="onb-progress" aria-label="Onboarding progress">
+        <span className="onb-count">{doneCount} of {progress.length} done</span>
+        {progress.map((x, i) => (
+          <a key={x.id} href={`#${x.id}`} className={x.done ? "done" : ""}>
+            <span className="num">{x.done ? <Icon name="check" size={12} /> : i + 1}</span>{x.label}
+          </a>
+        ))}
+        {doneCount === progress.length && <Link href="/plan" className="btn small" style={{ marginLeft: "auto" }}>Next: Plan <Icon name="send" size={13} /></Link>}
+      </nav>
 
       <div className="stack">
         {/* ---------- LinkedIn ---------- */}
-        <div className="card">
-          <div className="card-head"><h2>LinkedIn account</h2></div>
+        <div className="card" id="connect">
+          <div className="card-head"><h2><span className="step-n">1</span>Connect LinkedIn</h2><span className="hint">So approved posts can be published</span></div>
           {notice && <div style={{ marginBottom: 12 }}><Callout kind={notice[0] as "good"}>{notice[1]}</Callout></div>}
           {!li ? (
             <Skeleton h={48} />
@@ -135,26 +155,63 @@ export default function SettingsPage() {
               </div>
               {!li.appConfigured && (
                 <p className="meta">
-                  One-time setup (free): create an app at developer.linkedin.com, add the products <b>Sign In with LinkedIn using OpenID Connect</b> and <b>Share on LinkedIn</b>, add this redirect URL in the Auth tab: <code>{li.redirectUri}</code>, then put the Client ID and Secret in <code>.env.local</code> (see README) and restart Post Studio.
+                  LinkedIn sign-in isn&apos;t set up on this server yet. Ask your admin to add the LinkedIn app details.
                 </p>
               )}
             </>
           )}
         </div>
 
-        {/* ---------- Publishing ---------- */}
-        <div className="card">
-          <div className="card-head"><h2>Publishing</h2></div>
+        {/* ---------- About you ---------- */}
+        <div className="card" id="about">
+          <div className="card-head"><h2><span className="step-n">2</span>About you</h2><span className="hint">Used for trending research, planning and approvals</span></div>
           {!s ? <Skeleton h={160} /> : (
             <div className="stack">
-              <div className="grid" style={{ alignItems: "end" }}>
+              <p className="meta" style={{ margin: 0 }}>Fill this in once. Post Studio reuses it in every later step, so you never retype it.</p>
+              <div className="grid">
                 <label className="field">
-                  Default approver name
-                  <input type="text" value={s.approverName} onChange={(e) => setS({ ...s, approverName: e.target.value })} placeholder="Your name" maxLength={80} />
+                  <span className="field-label">Your name <span className="req">Required</span></span>
+                  <input type="text" value={s.approverName} onChange={(e) => setS({ ...s, approverName: e.target.value })} placeholder="e.g. Priya Sharma" maxLength={80} />
+                  <span className="field-help"><b>Used for:</b> approving posts. It&apos;s filled in for you in Review and saved in the approval log next to every post.<br /><b>Why:</b> nothing is published without a named person saying yes.</span>
                 </label>
-                <div><button onClick={() => save("name", { approverName: s.approverName }, "Approver name saved.")} disabled={!nameDirty || busy === "name"}>{busy === "name" ? <Spinner /> : null} Save name</button></div>
+                <label className="field">
+                  <span className="field-label">Focus <span className="opt">Optional</span></span>
+                  <input type="text" value={s.focus} onChange={(e) => setS({ ...s, focus: e.target.value })} placeholder="e.g. web performance, multi-tenant SaaS" maxLength={400} />
+                  <span className="field-help"><b>Used for:</b> narrowing trending research in Plan to the topics you know best.<br /><b>Why:</b> without it, you get broader topics for your whole audience.</span>
+                </label>
               </div>
+              <label className="field">
+                <span className="field-label">Who you write for <span className="req">Required</span></span>
+                <input type="text" value={s.audience} onChange={(e) => setS({ ...s, audience: e.target.value })} placeholder="e.g. Frontend engineers and engineering managers in India" maxLength={400} />
+                <span className="field-help"><b>Used for:</b> finding what this audience is talking about (Plan → Trending topics), and tuning &quot;Rewrite in my voice&quot; and punch lines in Review.<br /><b>Why:</b> a post written for a specific reader gets more replies than one written for everyone. Be specific: role, seniority, region.</span>
+              </label>
+              <label className="field">
+                <span className="field-label">People or companies you want to be visible to <span className="opt">Optional · one per line</span></span>
+                <textarea style={{ minHeight: 70 }} value={s.people} onChange={(e) => setS({ ...s, people: e.target.value })} placeholder={"e.g. Vercel\nFrontend leads in Bangalore"} />
+                <span className="field-help"><b>Used for:</b> the engagement list (Advanced tools → Engage): whose posts to comment on, and what to add.<br /><b>Why:</b> commenting where these people already are puts your name in front of them. Only names you list are used; leave it empty and Plan suggests the kinds of people to look for. Post Studio never comments for you.</span>
+              </label>
+              <div className="row">
+                <button onClick={() => save("about", { approverName: s.approverName, audience: s.audience, focus: s.focus, people: s.people }, "Saved. Plan will use these.")} disabled={!aboutDirty || busy === "about"}>
+                  {busy === "about" ? <Spinner /> : null} Save
+                </button>
+                {aboutDirty && saved && <button className="ghost" onClick={() => setS({ ...s, approverName: saved.approverName, audience: saved.audience, focus: saved.focus, people: saved.people })}>Undo</button>}
+              </div>
+            </div>
+          )}
+        </div>
 
+        {/* ---------- Your profile ---------- */}
+        <div className="card" id="profile">
+          <div className="card-head"><h2><span className="step-n">3</span>Your profile</h2><span className="hint">Upload once; Plan builds your week from it</span></div>
+          <ProfileScore onScored={setScored} />
+        </div>
+
+        {/* ---------- Posting rules ---------- */}
+        <div className="onb-step-head" id="rules"><span className="step-n">4</span>Posting rules</div>
+        <div className="card">
+          <div className="card-head"><h2>Schedule &amp; publishing</h2></div>
+          {!s ? <Skeleton h={160} /> : (
+            <div className="stack">
               <div>
                 <b style={{ fontSize: 14 }}>Posting slots</b>
                 <p className="meta" style={{ margin: "2px 0 10px" }}>&quot;Add to queue&quot; puts a post in the next free slot. Times use this computer&apos;s timezone ({Intl.DateTimeFormat().resolvedOptions().timeZone}).</p>
@@ -197,13 +254,12 @@ export default function SettingsPage() {
               </div>
 
               <div style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
-                <b style={{ fontSize: 14 }}>Live posting: {live ? <span className="problem">ON</span> : <span>off (dry run)</span>}</b>
+                <b style={{ fontSize: 14 }}>Live posting: {live ? <span className="problem">ON</span> : <span>off (test mode)</span>}</b>
                 <p className="meta" style={{ margin: "4px 0 0" }}>
                   {live
                     ? "Approved posts go to LinkedIn for real."
-                    : "Approved posts are recorded but never sent to LinkedIn."}{" "}
-                  This is set in <code>.env.local</code> (<code>POST_STUDIO_LIVE=1</code> for live), not here, so it can&apos;t be switched on by accident. Restart <code>npm run dev</code> and the worker after changing it.
-                  {liVersion ? <> LinkedIn API version: <code>{liVersion}</code>.</> : <> <span className="warning">LI_VERSION isn&apos;t set; live posting will fail until it is.</span></>}
+                    : "Approved posts are recorded but never sent to LinkedIn."}
+                  {live && !liVersion && <> <span className="warning">LinkedIn publishing isn&apos;t fully configured yet. Ask your admin.</span></>}
                 </p>
               </div>
             </div>
@@ -244,7 +300,7 @@ export default function SettingsPage() {
                     </label>
                   ))}
                 </div>
-                <p className="meta" style={{ margin: "6px 0 0" }}>You can still switch for a single post on the Publish step.</p>
+                <p className="meta" style={{ margin: "6px 0 0" }}>You can still switch for a single post when you review it.</p>
               </div>
             </div>
           )}

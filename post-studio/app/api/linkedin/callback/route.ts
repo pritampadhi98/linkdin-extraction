@@ -4,7 +4,7 @@ import { oauthApp, saveConnection } from "@/lib/connection";
 export const runtime = "nodejs";
 
 const back = (req: NextRequest, status: string, detail?: string) => {
-  const url = new URL("/settings", req.url);
+  const url = new URL("/onboarding", req.url);
   url.searchParams.set("linkedin", status);
   if (detail) url.searchParams.set("detail", detail.slice(0, 300));
   const res = NextResponse.redirect(url);

@@ -1,0 +1,5 @@
+.DS_Store
+__pycache__/
+*.pyc
+# Third-party skill pack, installed separately into ~/.claude/skills
+linkedin-agent-skill/

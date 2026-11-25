@@ -16,13 +16,16 @@ export async function GET() {
   return NextResponse.json({ settings, offLimits, approvals, live: isLive(), liVersion: process.env.LI_VERSION ?? null });
 }
 
-/** Partial update: { approverName?, slots?, queuePaused?, offLimits? } */
+/** Partial update: { approverName?, audience?, focus?, people?, slots?, queuePaused?, hashtagCount?, linkPlacement?, offLimits? } */
 export async function PATCH(req: Request) {
   const body = (await req.json().catch(() => ({}))) as Partial<Settings> & { offLimits?: unknown };
   const patch: Partial<Settings> = {};
   if (body.approverName !== undefined) patch.approverName = String(body.approverName).trim().slice(0, 80);
   if (body.queuePaused !== undefined) patch.queuePaused = body.queuePaused === true;
   if (body.hashtagCount !== undefined) patch.hashtagCount = clampHashtags(body.hashtagCount);
+  if (body.audience !== undefined) patch.audience = String(body.audience).trim().slice(0, 400);
+  if (body.focus !== undefined) patch.focus = String(body.focus).trim().slice(0, 400);
+  if (body.people !== undefined) patch.people = String(body.people).trim().slice(0, 4000);
   if (body.linkPlacement !== undefined) patch.linkPlacement = body.linkPlacement === "post" ? "post" : "comment";
   if (body.slots !== undefined) {
     const slots = validSlots(body.slots);

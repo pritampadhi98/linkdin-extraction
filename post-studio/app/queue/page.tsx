@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { QueueItem } from "@/lib/queue";
+import Calendar from "./Calendar";
 import PostRow from "../components/PostRow";
 import { usePostActions } from "../components/postActions";
 import { api, useConfirm, useStudio, useToast, workerRunning } from "../components/providers";
@@ -18,6 +19,17 @@ export default function QueuePage() {
   const [overId, setOverId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [pausing, setPausing] = useState(false);
+  const [view, setView] = useState<"calendar" | "list">("calendar");
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem("ps.scheduleView");
+      if (v === "list" || v === "calendar") setView(v);
+    } catch {}
+  }, []);
+  const pickView = (v: "calendar" | "list") => {
+    setView(v);
+    try { localStorage.setItem("ps.scheduleView", v); } catch {}
+  };
 
   const queued = useMemo(
     () => (data?.items ?? []).filter((x) => x.status === "queued").sort((a, b) => a.scheduledAt!.localeCompare(b.scheduledAt!)),
@@ -30,7 +42,6 @@ export default function QueuePage() {
   const rows = ids.map((id) => byId.get(id)).filter(Boolean) as QueueItem[];
   const times = queued.map((q) => q.scheduledAt!); // slot times stay put; posts move between them
   const failed = (data?.items ?? []).filter((x) => x.status === "failed");
-  const recent = (data?.items ?? []).filter((x) => x.status === "posted").slice(0, 5);
   const paused = data?.settings.queuePaused ?? false;
   const running = workerRunning(data?.workerAt ?? null);
 
@@ -83,7 +94,11 @@ export default function QueuePage() {
 
   return (
     <div className="page">
-      <PageHead title="Queue" sub="Upcoming posts, in the order they'll go out.">
+      <PageHead title="Schedule" sub="Your posting calendar: what's planned, what's going out, and what's published.">
+        <div className="seg" role="radiogroup" aria-label="View">
+          <button className={view === "calendar" ? "on" : ""} aria-pressed={view === "calendar"} onClick={() => pickView("calendar")}><Icon name="calendar" size={14} /> Calendar</button>
+          <button className={view === "list" ? "on" : ""} aria-pressed={view === "list"} onClick={() => pickView("list")}><Icon name="list" size={14} /> Queue list</button>
+        </div>
         <button className="secondary" onClick={togglePause} disabled={!data || pausing}>
           {pausing ? <Spinner /> : <Icon name={paused ? "play" : "pause"} />} {paused ? "Resume queue" : "Pause queue"}
         </button>
@@ -94,10 +109,14 @@ export default function QueuePage() {
         {paused && <Callout kind="warn"><b>The queue is paused.</b> Nothing publishes automatically until you resume it.</Callout>}
         {data && !running && queued.length > 0 && (
           <Callout kind="warn">
-            <b>The queue worker isn&apos;t running</b>, so scheduled posts won&apos;t go out. In a terminal, in the post-studio folder, run <code>npm run worker</code> and leave it open. Your Mac must be awake at post time.
+            <b>The scheduler isn&apos;t running</b>, so scheduled posts won&apos;t go out yet.
           </Callout>
         )}
 
+        {view === "calendar" ? (
+          data ? <Calendar items={data.items} settings={data.settings} /> : <Skeleton h={420} />
+        ) : (
+          <>
         {!data ? (
           <Skeleton h={120} />
         ) : next ? (
@@ -156,6 +175,9 @@ export default function QueuePage() {
           )}
         </div>
 
+          </>
+        )}
+
         {failed.length > 0 && (
           <div className="card">
             <div className="card-head"><h2>Failed <span className="meta">({failed.length})</span></h2><span className="hint">Fix and retry, or move back to drafts</span></div>
@@ -163,12 +185,6 @@ export default function QueuePage() {
           </div>
         )}
 
-        <div className="card">
-          <div className="card-head"><h2>Recently published</h2><Link href="/posts?status=posted" className="hint">See all</Link></div>
-          {recent.length === 0 ? <p className="meta" style={{ margin: 0 }}>Nothing published yet.</p> : (
-            <div className="items">{recent.map((p) => <PostRow key={p.id} post={p} actions={actions} />)}</div>
-          )}
-        </div>
       </div>
     </div>
   );

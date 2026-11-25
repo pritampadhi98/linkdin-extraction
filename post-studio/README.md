@@ -16,8 +16,7 @@ Post Studio adds the compliance check, the approval flow and log, and the UI.
 |---|---|---|
 | Node.js 20+ | `node -v` | [nodejs.org](https://nodejs.org) or `nvm install 20` |
 | Python 3 (for the humanizer) | `python3 --version` | `brew install python` |
-| `li-human` skill | `ls ~/.claude/skills/li-human` | from the skill pack above |
-| `li-post` skill (for drafting) | `ls ~/.claude/skills/li-post` | from the skill pack above |
+| LinkedIn skills | `ls skills` | already bundled in `post-studio/skills/` (your `~/.claude/skills` copy wins if present) |
 | `rsvg-convert` (for Create image) | `which rsvg-convert` | `brew install librsvg` |
 | Claude: an API key **or** the Claude Code CLI | `which claude` | see step 3 |
 
@@ -173,7 +172,7 @@ Every Claude call goes through one of two backends:
 Force one with `POST_STUDIO_LLM=api` or `POST_STUDIO_LLM=claude-code`.
 The default model is `claude-opus-5-5`; override with `DRAFT_MODEL`.
 
-Drafting uses the li-post skill (`~/.claude/skills/li-post`) and your voice profile (`~/.claude/linkedin/voice.md`).
+Drafting uses the li-post skill (from `~/.claude/skills/li-post`, or the bundled `post-studio/skills/li-post`) and your voice profile (`~/.claude/linkedin/voice.md`).
 It never invents facts: anything it can't fill becomes a `{{placeholder}}`, and a thin idea gets questions back
 instead of a draft.
 
@@ -239,7 +238,7 @@ The worker re-checks this list right before posting, so a term added after appro
 | `POST_STUDIO_LLM` | auto | `api` or `claude-code` |
 | `CLAUDE_BIN` | `claude` | Path to the Claude Code CLI |
 | `DRAFT_MODEL` | `claude-opus-5-5` | Model for all Claude calls |
-| `SKILLS_DIR` | `~/.claude/skills` | Where the skills live |
+| `SKILLS_DIR` | `~/.claude/skills`, else bundled `post-studio/skills` | Where the skills live (checked per skill) |
 | `LI_HUMAN_DIR` / `LI_POST_DIR` | inside `SKILLS_DIR` | Override one skill's folder |
 | `VOICE_FILE` | `~/.claude/linkedin/voice.md` | Your voice profile |
 | `OFF_LIMITS_FILE` | `off-limits.txt` | Compliance term list |

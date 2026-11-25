@@ -4,6 +4,8 @@ import path from "node:path";
 import { z } from "zod";
 import { ClaudeError, readSkill, readVoice } from "./claude";
 import { structured } from "./llm";
+import { loadMarket, type MarketState } from "./market";
+import { loadSettings } from "./settings";
 
 const DATA = path.join(process.cwd(), "data");
 const STATE = path.join(DATA, "profile.json"); // last score + plan, gitignored
@@ -58,7 +60,7 @@ export const PlanSchema = z.object({
         placeholders: z.array(z.string()).describe("Every {{placeholder}} the user must fill"),
       }),
     )
-    .describe("Exactly four posts, never two of the same type back to back"),
+    .describe("Exactly the number of posts the user asked for, never two of the same type back to back"),
   engagement: z.object({
     daily_minutes: z.number(),
     groups: z.array(
@@ -78,7 +80,17 @@ export const PlanSchema = z.object({
 });
 export type Plan = z.infer<typeof PlanSchema>;
 
-export type GrowthState = { score?: Score & { at: string; via: string }; plan?: Plan & { at: string; via: string } };
+/** What a plan was built from, so the UI can tell when it's out of date. */
+export type PlanBasis = { count: number; topics: string[] };
+export const MAX_POSTS = 7;
+export const DEFAULT_POSTS = 4;
+
+export type GrowthState = {
+  score?: Score & { at: string; via: string };
+  plan?: Plan & { at: string; via: string; basis?: PlanBasis };
+  /** Topic and keyword ideas drawn from the profile itself (same shape as trending research, with no web sources). */
+  topics?: MarketState;
+};
 
 // ---------- Storage ----------
 
@@ -106,6 +118,55 @@ async function profilePdf(): Promise<string> {
 }
 
 // ---------- Claude calls ----------
+
+const ProfileTopicsSchema = z.object({
+  topics: z
+    .array(
+      z.object({
+        keyword: z.string().describe("The topic or keyword, 1-4 words, as people search and write it"),
+        hashtag: z.string().nullable().describe("A real, commonly used LinkedIn hashtag for it, with #, or null"),
+        why: z.string().describe("One sentence: why this topic fits THIS person's profile and audience"),
+        angle: z.string().describe("One sentence: a post angle built only from their OWN proof (profile PDF, voice profile). Empty if none fits"),
+      }),
+    )
+    .describe("Exactly 8 topics, strongest fit first"),
+  notes: z.string().describe("One or two sentences: what you based this on and anything the user should confirm"),
+});
+
+/** Topic and keyword ideas drawn from the profile PDF, the voice profile and who the user writes for. No web search. */
+export async function suggestProfileTopics(): Promise<MarketState> {
+  const [voice, pdfPath, settings, state] = await Promise.all([readVoice(), profilePdf(), loadSettings(), loadState()]);
+  const { data, via } = await structured({
+    schema: ProfileTopicsSchema,
+    pdfPath,
+    system: `You suggest LinkedIn topics and keywords for one person, from THEIR profile and the audience they write for. These come from the profile, not from the news: you cannot search the web.
+
+Hard rules:
+- Only suggest topics where this person has real proof in the profile PDF or the voice profile ("Proof I can use"). Never invent experience, numbers, clients or results.
+- keyword: 1-4 words as people actually search it. hashtag: a real, commonly used one, or null.
+- why: one sentence on the fit with this person's profile and audience.
+- angle: one sentence, built only from their own proof. If no honest angle exists, leave it empty.
+- Mix: some topics straight from their strongest proof, a few from adjacent areas their audience cares about, and keep the focus areas first if given.
+- No em dashes, no curly quotes.`,
+    prompt: `<voice_profile>\n${voice.trim() || "(empty)"}\n</voice_profile>
+
+<audience>${settings.audience || "(not given: infer from the profile)"}</audience>
+<focus>${settings.focus || "(none)"}</focus>
+<current_score>\n${state.score ? JSON.stringify(state.score) : "(not scored yet)"}\n</current_score>
+
+Suggest 8 topics and keywords I could post about, grounded in my profile.`,
+  });
+  const topics: MarketState = {
+    keywords: data.topics.slice(0, 8).map((t) => ({ ...t, sources: [] })),
+    notes: data.notes,
+    at: new Date().toISOString(),
+    audience: settings.audience,
+    focus: settings.focus,
+    via,
+  };
+  await saveState({ ...(await loadState()), topics });
+  return topics;
+}
 
 /** Score the uploaded profile PDF against li-profile's 12-part rubric. */
 export async function scoreProfile(): Promise<Score & { at: string; via: string }> {
@@ -136,8 +197,23 @@ ${rubric}
 }
 
 /** "Increase": profile rewrites + a week of posts + an engagement list. */
-export async function buildPlan(people: string): Promise<Plan & { at: string; via: string }> {
+export async function buildPlan(people: string, opts: { count?: number; topics?: string[] } = {}): Promise<Plan & { at: string; via: string; basis: PlanBasis }> {
   const state = await loadState();
+  const count = Math.min(MAX_POSTS, Math.max(1, Math.round(Number(opts.count) || DEFAULT_POSTS)));
+  // Selected trending topics: matched against the saved research so only real topics (with their sources' summary) are used.
+  const [market, saved] = await Promise.all([loadMarket(), loadState()]);
+  const wanted = new Set((opts.topics ?? []).map(String));
+  const seen = new Set<string>();
+  const topics = [...(market?.keywords ?? []), ...(saved.topics?.keywords ?? [])]
+    .filter((k) => wanted.has(k.keyword) && !seen.has(k.keyword) && !!seen.add(k.keyword))
+    .slice(0, 6);
+  const topicBlock = topics.length
+    ? `\n\n<selected_trending_topics>\n${topics
+        .map((t, i) => `<topic n="${i + 1}">\nTopic: ${t.keyword}${t.hashtag ? ` (${t.hashtag})` : ""}\nContext (from web research or the user's own profile; not the user's facts): ${t.why}\nSuggested angle: ${t.angle || "(none)"}\n</topic>`)
+        .join("\n")}\n</selected_trending_topics>
+
+The user chose these topics for the week. Build the posts around them where they genuinely connect to the user's OWN proof (profile PDF, voice profile). With ${count} posts, give each topic its own post if there's room, otherwise combine topics that fit together. Never force a link: if a topic has no honest connection to the user's experience, skip it and say so in notes. Don't add version numbers, dates or statistics about a topic beyond "What's happening". Use each topic's hashtag where it fits.`
+    : "";
   const [profileSkill, planSkill, postSkill, hooks, voice, pdfPath] = await Promise.all([
     readSkill("li-profile", "SKILL.md"),
     readSkill("li-plan", "SKILL.md"),
@@ -151,7 +227,7 @@ export async function buildPlan(people: string): Promise<Plan & { at: string; vi
     pdfPath,
     system: `You help one person grow on LinkedIn. Produce three things, following the three skills below:
 1. Profile rewrites (li-profile), fix-first order.
-2. Four posts for the coming week (li-plan for the mix and timing, li-post for each post).
+2. The number of posts the user asks for, for the coming week (li-plan for the mix and timing, li-post for each post).
 3. An engagement list (li-plan's "Who to engage with").
 
 Hard rules:
@@ -183,9 +259,10 @@ ${hooks}
 
 <people_and_companies_to_engage_with>\n${people.trim() || "(none given)"}\n</people_and_companies_to_engage_with>
 
-Build my profile rewrites, my four posts for the week, and my engagement list.`,
+Build my profile rewrites, my ${count} post${count === 1 ? "" : "s"} for the week, and my engagement list.${topicBlock}`,
   });
-  const plan = { ...data, at: new Date().toISOString(), via };
+  // Trust the number asked for, not whatever came back.
+  const plan = { ...data, week: data.week.slice(0, count), at: new Date().toISOString(), via, basis: { count, topics: topics.map((t) => t.keyword) } };
   await saveState({ ...(await loadState()), plan });
   return plan;
 }

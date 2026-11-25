@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Post Studio One-Pager</title>
+<style>
+  @page { size: A4; margin: 0; }
+  :root{
+    --navy:#0b1b3a; --navy2:#13284f; --blue:#0a66c2; --blue-soft:#e8f1fb; --sky:#7fb6ee;
+    --mint:#16a36f; --mint-soft:#e3f6ee; --amber:#e08a00; --amber-soft:#fdf1dc;
+    --ink:#121826; --muted:#5a6478; --line:#e3e7ee; --paper:#ffffff; --bg:#f5f7fb;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:210mm;height:297mm;background:var(--paper)}
+  body{font:10pt/1.4 -apple-system,"Helvetica Neue",Arial,sans-serif;color:var(--ink);overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page{width:210mm;height:297mm;display:flex;flex-direction:column}
+
+  /* HERO */
+  .hero{background:var(--navy);color:#fff;padding:26px 30px 24px;display:grid;grid-template-columns:1.08fr .92fr;gap:22px;position:relative;overflow:hidden}
+  .hero:before{content:"";position:absolute;right:-120px;top:-140px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(10,102,194,.55),rgba(10,102,194,0) 70%)}
+  .brand{display:flex;align-items:center;gap:9px;margin-bottom:16px;position:relative}
+  .logo{width:30px;height:30px;border-radius:8px;background:var(--blue);display:grid;place-items:center;font-weight:700;font-size:12pt;letter-spacing:-.02em}
+  .brand b{font-size:13pt;letter-spacing:-.01em}
+  .brand span{font-size:8pt;color:var(--sky);letter-spacing:.16em;text-transform:uppercase;margin-left:6px}
+  h1{font-size:25pt;line-height:1.06;letter-spacing:-.025em;margin-bottom:10px;position:relative}
+  h1 em{font-style:normal;color:var(--sky)}
+  .sub{font-size:10.6pt;color:#c9d6ea;max-width:330px;margin-bottom:14px;position:relative}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;position:relative}
+  .chip{font-size:8.3pt;font-weight:600;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18)}
+
+  /* mock app */
+  .mock{position:relative;background:#fff;color:var(--ink);border-radius:14px;padding:12px 13px;box-shadow:0 18px 40px rgba(0,0,0,.35);align-self:center}
+  .mock-top{display:flex;gap:5px;margin-bottom:9px}
+  .mock-top i{width:7px;height:7px;border-radius:50%;background:#e3e7ee;display:block}
+  .post{display:flex;gap:8px;margin-bottom:9px}
+  .ava{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--sky));flex:none}
+  .bar{height:6px;border-radius:4px;background:#e9edf3;margin:4px 0}
+  .score{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;background:var(--mint-soft);margin-bottom:8px}
+  .score small{display:block;font-size:7.4pt;color:var(--muted)}
+  .score b{font-size:10pt;color:var(--mint)}
+  .checks{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:9px}
+  .ck{display:flex;align-items:center;gap:5px;font-size:7.6pt;font-weight:600;padding:5px 6px;border-radius:7px;background:var(--bg)}
+  .ck svg{flex:none}
+  .approve{display:flex;gap:6px}
+  .btn{flex:1;text-align:center;font-size:8pt;font-weight:700;padding:7px;border-radius:999px}
+  .btn.p{background:var(--blue);color:#fff}
+  .btn.s{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+
+  /* FLOW */
+  .flow{padding:16px 30px 12px;background:var(--bg)}
+  .eyebrow{font-size:7.6pt;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);margin-bottom:9px;display:flex;align-items:center;gap:10px}
+  .eyebrow:after{content:"";flex:1;height:1px;background:var(--line)}
+  .steps{display:flex;align-items:flex-start;justify-content:space-between}
+  .step{width:72px;text-align:center}
+  .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;margin:0 auto 5px;background:#fff;border:1px solid var(--line);box-shadow:0 2px 6px rgba(11,27,58,.06)}
+  .step b{display:block;font-size:8.6pt}
+  .step span{font-size:7.3pt;color:var(--muted)}
+  .arrow{margin-top:15px;color:#b6bfcd}
+  .step.hl .ic{background:var(--blue);border-color:var(--blue)}
+  .step.ok .ic{background:var(--mint);border-color:var(--mint)}
+
+  /* AUDIENCES */
+  .aud{padding:14px 30px 6px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:#fff}
+  .card h2{font-size:12.5pt;letter-spacing:-.01em;margin-bottom:2px;display:flex;align-items:center;gap:8px}
+  .card .tag{font-size:7.4pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:999px}
+  .ind .tag{background:var(--blue-soft);color:var(--blue)}
+  .co .tag{background:var(--amber-soft);color:var(--amber)}
+  .card p.lead{font-size:8.6pt;color:var(--muted);margin-bottom:9px}
+  .row{display:flex;gap:9px;align-items:flex-start;margin-top:8px}
+  .row .ic{width:30px;height:30px;border-radius:9px;margin:0;flex:none;box-shadow:none}
+  .ind .row .ic{background:var(--blue-soft);border-color:transparent}
+  .co .row .ic{background:var(--amber-soft);border-color:transparent}
+  .row b{display:block;font-size:9.2pt}
+  .row span{font-size:8pt;color:var(--muted)}
+
+  /* PROOF + TRUST */
+  .lower{padding:10px 30px 14px;display:grid;grid-template-columns:1.12fr .88fr;gap:14px;flex:1}
+  .proof{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff}
+  .big{display:flex;align-items:baseline;gap:8px;margin:2px 0 2px}
+  .big b{font-size:26pt;letter-spacing:-.03em;color:var(--navy)}
+  .big span{font-size:9pt;color:var(--muted)}
+  .note{font-size:7pt;color:var(--muted);margin-top:2px}
+  .trust{display:grid;grid-template-columns:1fr 1fr;gap:7px;align-content:start}
+  .badge{border-radius:12px;padding:9px 9px;background:var(--bg);display:flex;gap:7px;align-items:center}
+  .badge .ic{width:28px;height:28px;border-radius:8px;margin:0;flex:none;box-shadow:none;background:#fff}
+  .badge b{font-size:8.4pt;line-height:1.2;display:block}
+  .badge span{font-size:7.2pt;color:var(--muted);line-height:1.25;display:block}
+
+  /* FOOTER */
+  .foot{background:var(--navy);color:#fff;padding:14px 30px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .foot h3{font-size:13pt;letter-spacing:-.01em}
+  .foot p{font-size:8.4pt;color:#c9d6ea}
+  .cta{background:var(--blue);border-radius:12px;padding:9px 14px;text-align:left}
+  .cta small{display:block;font-size:7.2pt;letter-spacing:.14em;text-transform:uppercase;color:#cfe3f8}
+  .cta b{font-family:ui-monospace,Menlo,monospace;font-size:8.8pt}
+  .stack{font-size:7.6pt;color:var(--sky);margin-top:4px}
+  svg text{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div>
+      <div class="brand"><div class="logo">PS</div><b>Post Studio</b><span>for LinkedIn</span></div>
+      <h1>Show up on LinkedIn.<br><em>Sound like you.</em><br>Never leak a secret.</h1>
+      <p class="sub">Turn a rough idea into a polished post in your own voice. Every word is checked, and nothing goes live without your yes.</p>
+      <div class="chips"><span class="chip">AI drafts in your voice</span><span class="chip">Reads human, not robot</span><span class="chip">You approve every post</span></div>
+    </div>
+
+    <div class="mock">
+      <div class="mock-top"><i></i><i></i><i></i></div>
+      <div class="post"><div class="ava"></div><div style="flex:1"><div class="bar" style="width:46%;background:#cdd6e3"></div><div class="bar" style="width:92%"></div><div class="bar" style="width:84%"></div><div class="bar" style="width:60%"></div></div></div>
+      <div class="score">
+        <svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="#c9ecdc" stroke-width="4"/><circle cx="20" cy="20" r="16" fill="none" stroke="#16a36f" stroke-width="4" stroke-linecap="round" stroke-dasharray="70.4 100.5" transform="rotate(-90 20 20)"/><text x="20" y="24" text-anchor="middle" font-size="11" font-weight="700" fill="#0b1b3a">70</text></svg>
+        <div><small>Human score</small><b>PASS · sounds like a person</b></div>
+      </div>
+      <div class="checks">
+        <div class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a36f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>No AI fingerprints</div>
+        <div class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a36f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>No client names</div>
+        <div class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a36f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>No made-up facts</div>
+        <div class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a36f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Under 3,000 chars</div>
+      </div>
+      <div class="approve"><div class="btn s">Schedule</div><div class="btn p">Approve &amp; publish</div></div>
+    </div>
+  </section>
+
+  <!-- FLOW -->
+  <section class="flow">
+    <div class="eyebrow">From idea to impact</div>
+    <div class="steps">
+      <div class="step"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><b>Idea</b><span>a few lines</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 17l.8 2.2L22 20l-2.2.8L19 23l-.8-2.2L16 20l2.2-.8z"/></svg></div><b>Draft</b><span>AI, your voice</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><b>Humanize</b><span>reads natural</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div><b>Check</b><span>safety gate</span></div>
+      <div class="arrow">→</div>
+      <div class="step hl"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4v-9zM7 11l4-8a2.5 2.5 0 0 1 3 2.5V9h5a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7"/></svg></div><b>Approve</b><span>your yes</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></div><b>Publish</b><span>now or later</span></div>
+      <div class="arrow">→</div>
+      <div class="step ok"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M6 16l4-5 4 3 5-7"/></svg></div><b>Track</b><span>real numbers</span></div>
+    </div>
+  </section>
+
+  <!-- AUDIENCES -->
+  <section class="aud">
+    <div class="card ind">
+      <h2>For individuals <span class="tag">Grow</span></h2>
+      <p class="lead">Engineers, founders and creators who ship a lot but rarely post.</p>
+      <div class="row"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div><b>Minutes, not weekends</b><span>Three hooks and a full draft from a rough idea.</span></div></div>
+      <div class="row"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg></div><div><b>Endings that get replies</b><span>Punch lines that invite real comments, not "Thoughts?"</span></div></div>
+      <div class="row"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div><div><b>Scroll-stopping visuals</b><span>One click turns your post into a clean image.</span></div></div>
+      <div class="row"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M7 16V10M12 16V5M17 16v-4"/></svg></div><div><b>See what works</b><span>Hour-by-hour growth, profile score, post comparisons.</span></div></div>
+    </div>
+    <div class="card co">
+      <h2>For companies <span class="tag">Govern</span></h2>
+      <p class="lead">Teams that want employees visible, without the risk.</p>
+      <div class="row"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e08a00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></div><div><b>Nothing confidential leaks</b><span>Client names, internal numbers and NDA terms are blocked.</span></div></div>
+      <div class="row"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e08a00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></div><div><b>Every post approved and logged</b><span>A named approver for each post, with an audit trail.</span></div></div>
+      <div class="row"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e08a00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div><div><b>Data stays in-house</b><span>Runs on your machine. Keys never leave the server.</span></div></div>
+      <div class="row"><div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e08a00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div><div><b>A steady cadence</b><span>Weekly posting slots and a queue that publishes on time.</span></div></div>
+    </div>
+  </section>
+
+  <!-- PROOF + TRUST -->
+  <section class="lower">
+    <div class="proof">
+      <div class="eyebrow" style="margin-bottom:4px">Proof, not promises</div>
+      <div class="big"><b>607</b><span>impressions in about 2 days</span></div>
+      <svg viewBox="0 0 330 118" width="100%" aria-label="Impressions over hours since posting: 336 at 2h, 357 at 2h, 487 at 17h, 607 at 48h">
+        <!-- grid -->
+        <g stroke="#eef1f5" stroke-width="1">
+          <line x1="34" y1="12" x2="322" y2="12"/><line x1="34" y1="45" x2="322" y2="45"/><line x1="34" y1="78" x2="322" y2="78"/>
+        </g>
+        <line x1="34" y1="96" x2="322" y2="96" stroke="#c9d0db" stroke-width="1"/>
+        <g font-size="8" fill="#5a6478" text-anchor="end">
+          <text x="29" y="15">600</text><text x="29" y="48">400</text><text x="29" y="81">200</text><text x="29" y="99">0</text>
+        </g>
+        <g font-size="8" fill="#5a6478" text-anchor="middle">
+          <text x="34" y="110" text-anchor="start">Posted</text><text x="136" y="110">17h</text><text x="314" y="110">2 days</text>
+        </g>
+        <!-- area + line: x = 34 + h*6, y = 96 - v*0.14 -->
+        <path d="M34,96 L46,48.96 L46,46.02 L136,27.82 L322,11.02 L322,96 Z" fill="#0a66c2" opacity=".08"/>
+        <polyline points="34,96 46,46.02 136,27.82 322,11.02" fill="none" stroke="#0a66c2" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <g fill="#0a66c2" stroke="#fff" stroke-width="2">
+          <circle cx="46" cy="46.02" r="4.5"/><circle cx="136" cy="27.82" r="4.5"/><circle cx="322" cy="11.02" r="4.5"/>
+        </g>
+        <g font-size="8.5" font-weight="700" fill="#121826">
+          <text x="52" y="60">357 · 2h</text><text x="136" y="20" text-anchor="middle">487</text><text x="314" y="24" text-anchor="end">607</text>
+        </g>
+      </svg>
+      <div class="note">Real readings from the first post published with Post Studio, entered from LinkedIn. Results vary by post and audience.</div>
+    </div>
+
+    <div class="trust">
+      <div class="badge"><div class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a36f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><div><b>Human in the loop</b><span>No auto-posting</span></div></div>
+      <div class="badge"><div class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a36f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/></svg></div><div><b>Checked twice</b><span>At approval and before posting</span></div></div>
+      <div class="badge"><div class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a36f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/></svg></div><div><b>No made-up facts</b><span>Only what you give it</span></div></div>
+      <div class="badge"><div class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a36f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg></div><div><b>No bots, no scraping</b><span>Official LinkedIn API only</span></div></div>
+      <div class="badge"><div class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a36f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div><div><b>Secrets stay local</b><span>Keys never reach the browser</span></div></div>
+      <div class="badge"><div class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a36f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M6 16l4-5 4 3 5-7"/></svg></div><div><b>Real analytics</b><span>Backed by screenshots</span></div></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <section class="foot">
+    <div>
+      <h3>Post more. Worry less.</h3>
+      <p>Your voice, your facts, your approval. Every time.</p>
+      <div class="stack">Built with Next.js · Claude · LinkedIn official API</div>
+    </div>
+    <div class="cta"><small>Get started</small><b>github.com/pritampadhi98/linkdin-extraction</b></div>
+  </section>
+
+</div>
+</body>
+</html>

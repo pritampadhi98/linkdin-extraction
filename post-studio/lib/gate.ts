@@ -1,4 +1,5 @@
 import "server-only";
+import { checkClaims, type Claim } from "./claims";
 import { checkCompliance, type ComplianceHit } from "./compliance";
 import { detect, humanize, type CheckName, type DetectResult, type HumanizeReport } from "./humanizer";
 
@@ -19,6 +20,7 @@ export type GateResult = {
   before: DetectResult;
   after: DetectResult;
   compliance: ComplianceHit[];
+  claims: Claim[]; // numbers in the draft; the unsupported ones need the approver to confirm them
   problems: string[]; // anything here blocks Approve
   warnings: string[]; // shown, but does not block
 };
@@ -26,10 +28,11 @@ export type GateResult = {
 /** The full governance gate: humanize, score, compliance. Always run server-side. */
 export async function runGate(original: string): Promise<GateResult> {
   const { text: cleaned, report } = await humanize(original);
-  const [before, after, compliance] = await Promise.all([
+  const [before, after, compliance, claims] = await Promise.all([
     detect(original),
     detect(cleaned),
     checkCompliance(cleaned),
+    checkClaims(cleaned),
   ]);
 
   const problems: string[] = [];
@@ -52,8 +55,11 @@ export async function runGate(original: string): Promise<GateResult> {
         `Humanizer verdict is ${after.verdict}: overall ${after.human_score.toFixed(1)} needs 70+. Raise the lowest checks in the Human score panel.`,
       );
   }
+  const unbacked = claims.filter((c) => !c.supported).length;
+  if (unbacked)
+    warnings.push(`${unbacked} number(s) are not in your own proof list. Confirm each one is true before you approve.`);
   if (report.lexical.length)
     warnings.push("Words were swapped automatically. Check each change still says what you meant.");
 
-  return { original, cleaned, report, before, after, compliance, problems, warnings };
+  return { original, cleaned, report, before, after, compliance, claims, problems, warnings };
 }

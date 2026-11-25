@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Post Studio: Submission</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 16mm 15mm; }
+  :root { --ink:#16181d; --muted:#5b6170; --line:#dfe2e8; --accent:#0a66c2; --soft:#eef4fb; --ok:#1b7f4b; --warn:#9a5b00; }
+  * { box-sizing: border-box; }
+  body { font: 10.4pt/1.5 -apple-system, "Helvetica Neue", Arial, sans-serif; color: var(--ink); margin: 0; background:#fff; }
+  h1 { font-size: 26pt; line-height: 1.1; margin: 0 0 6px; letter-spacing: -0.02em; }
+  h2 { font-size: 14pt; margin: 20px 0 8px; break-after: avoid-page; padding-bottom: 4px; border-bottom: 2px solid var(--accent); break-after: avoid; }
+  h3 { font-size: 11pt; margin: 14px 0 4px; break-after: avoid; }
+  p { margin: 0 0 8px; }
+  .muted { color: var(--muted); }
+  .cover { border-left: 6px solid var(--accent); padding: 6px 0 6px 16px; margin-bottom: 18px; }
+  .tag { display:inline-block; font-size:8.5pt; padding:2px 8px; border-radius:20px; background:var(--soft); color:var(--accent); margin:2px 4px 2px 0; font-weight:600; }
+  .box { border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin: 0; break-inside: avoid; }
+  .link { font-family: ui-monospace, Menlo, monospace; font-size: 10pt; color: var(--accent); }
+  table { width:100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 9.4pt; break-inside: auto; }
+  th, td { text-align:left; vertical-align: top; padding: 5px 7px; border-bottom: 1px solid var(--line); }
+  th { background: #f6f7f9; font-weight: 600; }
+  tr { break-inside: avoid; }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 8.8pt; background:#f3f4f6; padding: 1px 4px; border-radius: 4px; }
+  pre { font-family: ui-monospace, Menlo, monospace; font-size: 8.6pt; background:#f6f7f9; border:1px solid var(--line); border-radius:6px; padding:8px 10px; margin:6px 0; white-space: pre-wrap; break-inside: avoid; }
+  ol, ul { margin: 4px 0 8px; padding-left: 20px; }
+  li { margin: 2px 0; }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi { display:grid; grid-template-columns: repeat(4,1fr); gap:8px; margin: 10px 0; }
+  .kpi div { border:1px solid var(--line); border-radius:8px; padding:8px; text-align:center; }
+  .kpi b { display:block; font-size: 16pt; color: var(--accent); }
+  .kpi span { font-size: 8.5pt; color: var(--muted); }
+  .page-break { break-before: page; }
+  svg text { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  .foot { margin-top: 18px; font-size: 8.5pt; color: var(--muted); border-top:1px solid var(--line); padding-top:6px; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Post Studio</h1>
+  <p style="font-size:13pt;margin:0 0 6px">AI-drafted LinkedIn posts with a human approval gate</p>
+  <p class="muted" style="margin:0">Project submission · linkdin-extraction repository · 23 November 2026 · Prepared by Pritam Padhi</p>
+</div>
+
+<div class="box" style="margin-bottom:10px">
+  <b>Repository:</b> <span class="link">https://github.com/pritampadhi98/linkdin-extraction</span><br>
+  <b>Fork / working copy:</b> <span class="link">https://github.com/pritam535/linkdin-extraction</span><br>
+  <b>Main app:</b> <code>post-studio/</code> · <b>Run:</b> <code>npm install &amp;&amp; npm run dev</code> → <span class="link">http://localhost:3009</span>
+</div>
+
+<div>
+  <span class="tag">Next.js 15</span><span class="tag">React 19</span><span class="tag">TypeScript</span><span class="tag">Claude (Anthropic API or Claude Code CLI)</span><span class="tag">LinkedIn OAuth + Posts API</span><span class="tag">Python humanizer</span><span class="tag">zod</span>
+</div>
+
+<h2>1. What it does</h2>
+<p>Post Studio is a local web app that helps an engineer publish on LinkedIn consistently <b>without giving up control</b>. Claude drafts and improves posts in the author's own voice, a humanizer removes the "written by AI" fingerprint, a governance gate blocks anything confidential, and <b>nothing is published until a named person approves it</b>. Published posts are tracked with real, hand-entered readings, never estimated.</p>
+
+<div class="kpi">
+  <div><b>11</b><span>Claude skills used</span></div>
+  <div><b>9</b><span>app pages</span></div>
+  <div><b>~7,200</b><span>lines of TypeScript</span></div>
+  <div><b>1</b><span>live post published through it</span></div>
+</div>
+
+<h3>The problem</h3>
+<p>Engineers ship a lot of work that nobody outside the team sees. Writing always comes last. Generic AI tools make posting faster but produce text that reads as machine-written, and they can leak client names or internal numbers.</p>
+
+<h3>The solution, in one line</h3>
+<p><b>Idea → Claude draft → Humanizer → Score + compliance gate → Human approval → Queue → LinkedIn → Performance tracking.</b></p>
+
+<h2>2. Main features</h2>
+<table>
+  <tr><th style="width:24%">Feature</th><th>What it does</th></tr>
+  <tr><td><b>Write with Claude</b></td><td>Turns a raw idea plus facts you allow into three hooks and a full draft, using the li-post skill's hook formulas and your voice profile. Missing facts become <code>{{placeholders}}</code>; it never invents numbers, clients or results.</td></tr>
+  <tr><td><b>Humanizer</b></td><td>Strips em dashes, curly quotes, invisible characters and stock AI phrases, then scores how human the text sounds (five checks, PASS at 70+). Shows a side-by-side diff of every change.</td></tr>
+  <tr><td><b>Governance gate</b></td><td>Blocks approval on any off-limits term (client names, internal metrics, NDA terms; regex supported), unfilled placeholders, posts over 3,000 characters, or a missing approver.</td></tr>
+  <tr><td><b>Improve &amp; punch lines</b></td><td>Rewrites the hook for a target audience and suggests four closing lines that invite real comments, filtering out reflex bait like "Thoughts?".</td></tr>
+  <tr><td><b>Create image</b></td><td>Claude proposes an image layout from the post (compare, steps, key points, quote); the server renders a 1080×1350 PNG with alt text and attaches it.</td></tr>
+  <tr><td><b>Queue &amp; scheduling</b></td><td>Weekly posting slots, drag-to-reorder queue, pause/resume. A separate worker publishes due posts and re-checks the off-limits list right before posting.</td></tr>
+  <tr><td><b>Performance</b></td><td>Per-post timeline of readings with screenshots, impressions and engagement charts, hour-by-hour and day-by-day views, due-reading reminders, and a compare-posts view.</td></tr>
+  <tr><td><b>Profile growth</b></td><td>Scores the LinkedIn profile PDF on a 12-part rubric, then writes profile rewrites, a week of posts and an engagement list.</td></tr>
+  <tr><td><b>Keywords &amp; analytics</b></td><td>Publishing activity, engagement trend, top posts and the words and hashtags that perform, computed only from your own posts.</td></tr>
+</table>
+
+<h2>3. How it is connected (architecture)</h2>
+<svg style="break-inside: avoid" viewBox="0 0 760 470" width="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5b6170"/></marker>
+  </defs>
+  <!-- user -->
+  <rect x="300" y="8" width="160" height="44" rx="8" fill="#16181d"/>
+  <text x="380" y="27" fill="#fff" font-size="12" text-anchor="middle" font-weight="600">You (author + approver)</text>
+  <text x="380" y="43" fill="#c9ccd3" font-size="10" text-anchor="middle">browser · localhost:3009</text>
+  <line x1="380" y1="52" x2="380" y2="82" stroke="#5b6170" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- app box -->
+  <rect x="150" y="84" width="460" height="214" rx="12" fill="#eef4fb" stroke="#0a66c2" stroke-width="1.5"/>
+  <text x="166" y="104" font-size="12" font-weight="700" fill="#0a66c2">Post Studio (Next.js app, runs on your Mac)</text>
+  <rect x="166" y="114" width="200" height="72" rx="8" fill="#fff" stroke="#dfe2e8"/>
+  <text x="176" y="132" font-size="11" font-weight="600">UI pages (React)</text>
+  <text x="176" y="148" font-size="9.5" fill="#5b6170">Overview · Publish · Posts · Queue</text>
+  <text x="176" y="162" font-size="9.5" fill="#5b6170">Analytics · Keywords · Performance</text>
+  <text x="176" y="176" font-size="9.5" fill="#5b6170">Profile growth · Settings</text>
+  <rect x="394" y="114" width="200" height="72" rx="8" fill="#fff" stroke="#dfe2e8"/>
+  <text x="404" y="132" font-size="11" font-weight="600">API routes (server only)</text>
+  <text x="404" y="148" font-size="9.5" fill="#5b6170">/api/draft · /api/check · /api/improve</text>
+  <text x="404" y="162" font-size="9.5" fill="#5b6170">/api/posts · /api/queue · /api/image</text>
+  <text x="404" y="176" font-size="9.5" fill="#5b6170">/api/linkedin · /api/profile</text>
+  <line x1="366" y1="150" x2="392" y2="150" stroke="#5b6170" stroke-width="1.5" marker-end="url(#a)"/>
+  <rect x="166" y="198" width="428" height="88" rx="8" fill="#fff" stroke="#dfe2e8"/>
+  <text x="176" y="216" font-size="11" font-weight="600">Core library (lib/)</text>
+  <text x="176" y="233" font-size="9.5" fill="#5b6170">llm.ts → Claude · draft / improve / punchline / postImage · humanizer.ts → Python</text>
+  <text x="176" y="248" font-size="9.5" fill="#5b6170">gate.ts + compliance.ts (off-limits) · queue.ts (posts, readings) · analytics.ts</text>
+  <text x="176" y="263" font-size="9.5" fill="#5b6170">linkedin.ts + connection.ts (OAuth, Posts &amp; Images API) · renderImage.ts (SVG→PNG)</text>
+  <text x="176" y="278" font-size="9.5" fill="#5b6170">settings.ts (slots, approver, hashtags, link placement) · log.ts (approval log)</text>
+
+  <!-- left externals -->
+  <rect x="8" y="110" width="124" height="60" rx="8" fill="#fff" stroke="#dfe2e8"/>
+  <text x="70" y="132" font-size="11" font-weight="600" text-anchor="middle">Claude</text>
+  <text x="70" y="147" font-size="9" fill="#5b6170" text-anchor="middle">Anthropic API, or</text>
+  <text x="70" y="160" font-size="9" fill="#5b6170" text-anchor="middle">Claude Code CLI</text>
+  <line x1="164" y1="232" x2="134" y2="160" stroke="#5b6170" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="8" y="188" width="124" height="72" rx="8" fill="#fff" stroke="#dfe2e8"/>
+  <text x="70" y="208" font-size="11" font-weight="600" text-anchor="middle">Claude skills</text>
+  <text x="70" y="223" font-size="9" fill="#5b6170" text-anchor="middle">~/.claude/skills</text>
+  <text x="70" y="236" font-size="9" fill="#5b6170" text-anchor="middle">li-post · li-human</text>
+  <text x="70" y="249" font-size="9" fill="#5b6170" text-anchor="middle">li-profile · voice.md</text>
+  <line x1="134" y1="236" x2="164" y2="242" stroke="#5b6170" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- right externals -->
+  <rect x="628" y="110" width="124" height="60" rx="8" fill="#fff" stroke="#dfe2e8"/>
+  <text x="690" y="132" font-size="11" font-weight="600" text-anchor="middle">LinkedIn</text>
+  <text x="690" y="147" font-size="9" fill="#5b6170" text-anchor="middle">OAuth (OpenID)</text>
+  <text x="690" y="160" font-size="9" fill="#5b6170" text-anchor="middle">Posts &amp; Images API</text>
+  <line x1="596" y1="250" x2="628" y2="160" stroke="#5b6170" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="628" y="188" width="124" height="72" rx="8" fill="#fff" stroke="#dfe2e8"/>
+  <text x="690" y="208" font-size="11" font-weight="600" text-anchor="middle">Local tools</text>
+  <text x="690" y="223" font-size="9" fill="#5b6170" text-anchor="middle">python3 (humanizer,</text>
+  <text x="690" y="236" font-size="9" fill="#5b6170" text-anchor="middle">detector) ·</text>
+  <text x="690" y="249" font-size="9" fill="#5b6170" text-anchor="middle">rsvg-convert (images)</text>
+  <line x1="596" y1="262" x2="626" y2="236" stroke="#5b6170" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- storage -->
+  <rect x="150" y="320" width="220" height="92" rx="10" fill="#fff" stroke="#dfe2e8"/>
+  <text x="162" y="340" font-size="11" font-weight="600">Local storage (gitignored)</text>
+  <text x="162" y="356" font-size="9.5" fill="#5b6170">data/queue.json · posts + readings</text>
+  <text x="162" y="370" font-size="9.5" fill="#5b6170">data/images · data/shots · settings.json</text>
+  <text x="162" y="384" font-size="9.5" fill="#5b6170">data/linkedin.json · token (chmod 600)</text>
+  <text x="162" y="398" font-size="9.5" fill="#5b6170">.env.local · API keys (never committed)</text>
+  <line x1="300" y1="298" x2="270" y2="318" stroke="#5b6170" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- worker -->
+  <rect x="390" y="320" width="220" height="92" rx="10" fill="#fff" stroke="#dfe2e8"/>
+  <text x="402" y="340" font-size="11" font-weight="600">Queue worker</text>
+  <text x="402" y="356" font-size="9.5" fill="#5b6170">npm run worker · checks every 60s</text>
+  <text x="402" y="370" font-size="9.5" fill="#5b6170">re-checks off-limits list, then posts</text>
+  <text x="402" y="384" font-size="9.5" fill="#5b6170">due items to LinkedIn (or dry run)</text>
+  <text x="402" y="398" font-size="9.5" fill="#5b6170">writes a heartbeat the UI shows</text>
+  <line x1="372" y1="366" x2="388" y2="366" stroke="#5b6170" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M612,334 L619,334 L619,140 L626,140" fill="none" stroke="#5b6170" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#a)"/>
+
+  <text x="380" y="440" font-size="10" fill="#5b6170" text-anchor="middle">Solid arrows: requests at use time. Dashed: the worker publishing a scheduled post.</text>
+  <text x="380" y="456" font-size="10" fill="#5b6170" text-anchor="middle">Secrets and tokens stay on the server process; the browser never receives them.</text>
+</svg>
+
+<h3>Repository layout</h3>
+<table>
+  <tr><th style="width:28%">Folder</th><th>Role</th><th style="width:28%">Connects to</th></tr>
+  <tr><td><code>post-studio/</code></td><td>The main Next.js app: UI, API routes, core library and the queue worker.</td><td>Claude, LinkedIn, the skills, local storage</td></tr>
+  <tr><td><code>linkedin-agent-skill/</code></td><td>Open-source pack of 11 Claude skills by Jake Schincariol (MIT): li-post, li-human, li-profile, li-plan, li-comment, li-reply, li-dm, li-inbox, li-audit, li-carousel, li-repurpose. Installed into <code>~/.claude/skills</code>.</td><td>Read by Post Studio as Claude's instructions; li-human's Python scripts run the humanizer and detector</td></tr>
+  <tr><td><code>bin/li-publish</code></td><td>The first prototype: a terminal script that humanizes a draft, scores it, shows the result, asks y/N, then posts through LinkedIn's Posts API. Post Studio grew out of it.</td><td>li-human skill, LinkedIn Posts API, macOS Keychain</td></tr>
+  <tr><td><code>drafts/</code></td><td>Early drafts and their humanized <code>.clean.txt</code> versions produced by li-publish.</td><td>Input/output of li-publish</td></tr>
+</table>
+
+<h2>4. How a post flows through the system</h2>
+<ol>
+  <li><b>Draft.</b> The author types an idea and the facts Claude may use. <code>/api/draft</code> sends it to Claude with the li-post skill and the voice profile as instructions, and gets back structured output (hooks, draft, placeholders) validated with zod.</li>
+  <li><b>Humanize and score.</b> <code>/api/check</code> runs <code>humanize.py</code> and <code>detect.py</code> from the li-human skill and returns the cleaned text, a diff and the human score.</li>
+  <li><b>Gate.</b> <code>gate.ts</code> combines the score with the compliance check (<code>off-limits.txt</code>), placeholder check, length limit and approver name. Any hard failure blocks approval. This runs on the server, not only in the browser.</li>
+  <li><b>Approve.</b> A named approver confirms. The approval is written to an append-only log. The post is published now, scheduled, or added to the queue in the next free weekly slot.</li>
+  <li><b>Publish.</b> <code>linkedin.ts</code> calls LinkedIn's Posts API with the stored OAuth token (and the Images API for an attached image). For scheduled posts, the worker does this when the slot arrives, after re-checking the off-limits list.</li>
+  <li><b>Track.</b> The author adds readings (impressions, reactions, comments, reposts, plus a screenshot) at 1h, 3h, 6h, 12h, 24h, 48h, 72h and 7 days. Charts, hourly/daily gains and comparisons are computed only from these real readings.</li>
+</ol>
+
+<h2>5. External connections</h2>
+<table>
+  <tr><th style="width:20%">Service</th><th>How it is used</th><th style="width:30%">Credentials</th></tr>
+  <tr><td><b>Claude</b></td><td>All AI steps (draft, improve, punch lines, image layout, profile scoring and plan) go through one function, <code>structured()</code> in <code>lib/llm.ts</code>, which returns schema-validated JSON. Backend: the Anthropic API when a key is set, otherwise the local Claude Code CLI in headless mode. Default model <code>claude-opus-5-5</code>.</td><td><code>ANTHROPIC_API_KEY</code> in <code>.env.local</code>, or a signed-in <code>claude</code> CLI</td></tr>
+  <tr><td><b>LinkedIn sign-in</b></td><td>OAuth 2.0 with OpenID Connect. Requested scopes: <code>openid profile w_member_social</code>. Callback: <code>/api/linkedin/callback</code>. The token is stored server-side.</td><td>Client ID and Secret in <code>.env.local</code> (Keychain fallback); token in <code>data/linkedin.json</code> (600)</td></tr>
+  <tr><td><b>LinkedIn Posts &amp; Images API</b></td><td>Publishing text posts and posts with an image (initialize upload → upload → attach image URN). Uses a <code>LinkedIn-Version</code> header.</td><td>OAuth token; <code>LI_VERSION</code> (YYYYMM)</td></tr>
+  <tr><td><b>Python (li-human)</b></td><td>Runs <code>humanize.py</code> and <code>detect.py</code> as child processes.</td><td>None</td></tr>
+  <tr><td><b>rsvg-convert</b></td><td>Converts the generated SVG image to PNG.</td><td>None (<code>brew install librsvg</code>)</td></tr>
+</table>
+<p class="muted">LinkedIn's <code>w_member_social</code> permission allows posting but not reading post analytics. Reading analytics through the API needs <code>r_member_postAnalytics</code>, which LinkedIn grants only to approved Community Management API apps, so readings are entered by hand from LinkedIn's own numbers. Post Studio does not scrape LinkedIn.</p>
+
+<h2>6. Safety and governance by design</h2>
+<div class="grid2">
+  <div class="box"><b>Human in the loop.</b> Every post needs a named approver and an explicit confirmation. Live posting is off unless <code>POST_STUDIO_LIVE=1</code>; otherwise everything is a logged dry run.</div>
+  <div class="box"><b>No leaks.</b> The off-limits list blocks client names, internal metrics and NDA terms at approval and again right before posting.</div>
+  <div class="box"><b>No invented facts.</b> Claude is instructed to use only facts the author supplied. Gaps become placeholders that block approval until filled.</div>
+  <div class="box"><b>Secrets stay local.</b> API keys and tokens live in gitignored files with owner-only permissions and are never sent to the browser or committed.</div>
+  <div class="box"><b>No automation of people.</b> It never comments, messages, follows or scrapes. Engagement lists are suggestions the author acts on manually.</div>
+  <div class="box"><b>Real numbers only.</b> Analytics show only readings the author entered, each with its screenshot as evidence.</div>
+</div>
+
+<h2>7. Setup, step by step</h2>
+<ol>
+  <li><b>Prerequisites:</b> Node.js 20+, Python 3, the li-human and li-post skills in <code>~/.claude/skills</code>, <code>rsvg-convert</code>, and either an Anthropic API key or the Claude Code CLI.</li>
+  <li><b>Install:</b> <code>cd post-studio &amp;&amp; npm install</code></li>
+  <li><b>Configure:</b> create <code>post-studio/.env.local</code> with <code>LINKEDIN_CLIENT_ID</code>, <code>LINKEDIN_CLIENT_SECRET</code>, <code>ANTHROPIC_API_KEY</code> (optional), <code>LI_VERSION</code> and <code>POST_STUDIO_LIVE=0</code>.</li>
+  <li><b>LinkedIn app:</b> at developer.linkedin.com create an app linked to a Company Page, add the products <i>Sign In with LinkedIn using OpenID Connect</i> and <i>Share on LinkedIn</i>, and add the redirect URL <code>http://localhost:3009/api/linkedin/callback</code>.</li>
+  <li><b>Run:</b> <code>npm run dev</code> and open <code>http://localhost:3009</code>. In a second terminal, <code>npm run worker</code> for scheduled posts.</li>
+  <li><b>Connect:</b> Settings → Connect LinkedIn, then set the approver name, posting slots, hashtag count, link placement and off-limits list.</li>
+  <li><b>Go live:</b> set <code>POST_STUDIO_LIVE=1</code> and restart the app and the worker.</li>
+</ol>
+
+<h2>8. Result so far</h2>
+<p>The workflow was used end to end to publish a real post to LinkedIn on 19 November 2026 (approved through the gate, published through the official API). Readings entered from LinkedIn: <b>336 impressions at about 2 hours, 487 at about 17 hours and 607 impressions with 6 reactions at about 2 days.</b></p>
+
+
+</body>
+</html>

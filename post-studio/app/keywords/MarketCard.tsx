@@ -1,21 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { MarketState } from "@/lib/market";
+import TopicGrid, { type Topic } from "../plan/TopicGrid";
 import { api, useToast } from "../components/providers";
-import { Callout, EmptyState, Icon, Spinner, fmtWhen } from "../components/ui";
-
-const host = (u: string) => {
-  try {
-    return new URL(u).hostname.replace(/^www\./, "");
-  } catch {
-    return u;
-  }
-};
+import { EmptyState, Icon, Spinner, fmtWhen } from "../components/ui";
 
 /** What the target audience is discussing now: Claude + web search, every topic with its sources. */
-export default function MarketCard() {
+export default function MarketCard({ picked, toggle, full, onTopics }: { picked: string[]; toggle: (keyword: string) => void; full: boolean; onTopics: (t: Topic[] | null) => void }) {
   const toast = useToast();
   const [market, setMarket] = useState<MarketState | null>(null);
   const [audience, setAudience] = useState("");
@@ -23,22 +16,26 @@ export default function MarketCard() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
+  const report = useCallback((m: MarketState | null) => { setMarket(m); onTopics(m?.keywords ?? []); }, [onTopics]);
+
   useEffect(() => {
-    api<{ market: MarketState | null; defaultAudience: string }>("/api/keywords/market")
+    api<{ market: MarketState | null; defaultAudience: string; defaultFocus: string }>("/api/keywords/market")
       .then((d) => {
-        setMarket(d.market);
-        setAudience(d.market?.audience || d.defaultAudience);
-        setFocus(d.market?.focus ?? "");
+        report(d.market);
+        // What you saved in Onboarding → About you.
+        setAudience(d.defaultAudience);
+        setFocus(d.defaultFocus);
       })
-      .catch(() => {})
+      .catch(() => report(null))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function run() {
     setBusy(true);
     try {
       const d = await api<{ market: MarketState }>("/api/keywords/market", { method: "POST", json: { audience, focus } });
-      setMarket(d.market);
+      report(d.market);
       toast("success", `Found ${d.market.keywords.length} topics with sources.`);
     } catch (e) {
       toast("error", (e as Error).message);
@@ -48,61 +45,30 @@ export default function MarketCard() {
   }
 
   return (
-    <div className="card" id="market" style={{ marginBottom: 16 }}>
-      <div className="card-head">
-        <h2><Icon name="search" /> Trending for your audience</h2>
-        <span className="hint">{market ? `Researched ${fmtWhen(market.at)} · ${market.via}` : "Claude searches the web, with sources"}</span>
-      </div>
-
-      <div className="grid" style={{ alignItems: "end" }}>
-        <label className="field">
-          Target audience
-          <input type="text" value={audience} onChange={(e) => setAudience(e.target.value)} disabled={busy} />
-        </label>
-        <label className="field">
-          <span>Focus <span className="meta">(optional, e.g. &quot;web performance&quot;, &quot;multi-tenant SaaS&quot;)</span></span>
-          <input type="text" value={focus} onChange={(e) => setFocus(e.target.value)} disabled={busy} />
-        </label>
-      </div>
-      <div className="row">
-        <button onClick={run} disabled={busy || !audience.trim()}>
-          {busy ? <><Spinner /> Searching the web (1-3 minutes)…</> : <><Icon name="search" /> {market ? "Refresh trending keywords" : "Find trending keywords"}</>}
+    <div>
+      <div className="row" style={{ marginTop: 0 }}>
+        <button onClick={run} disabled={busy || loading || !audience.trim()}>
+          {busy ? <><Spinner /> Searching the web (1-3 minutes)…</> : <><Icon name="search" size={14} /> {market ? "Refresh trending topics" : "Find trending topics"}</>}
         </button>
-        <span className="meta">Uses your Claude account&apos;s web search. Topics without a source are dropped.</span>
+        <span className="meta">
+          {market ? `Last researched ${fmtWhen(market.at)}. ` : ""}Claude searches the web; topics without a source are dropped.
+        </span>
       </div>
+      {!loading && !audience.trim() && (
+        <p className="warning" style={{ margin: "8px 0 0" }}>Add who you write for in <Link href="/onboarding#about">Onboarding → About you</Link> first.</p>
+      )}
 
       {loading ? null : !market ? (
-        <EmptyState icon="search" title="No research yet">Find what your audience is talking about right now, then pick keywords to work into posts on the Publish page.</EmptyState>
+        <EmptyState icon="search" title="No research yet">Find what your audience is talking about right now. Every topic comes with sources and a &quot;Draft post&quot; button.</EmptyState>
       ) : (
         <div className="stack" style={{ marginTop: 14 }}>
-          {market.notes && <Callout kind="info">{market.notes} Check the sources before you rely on a claim.</Callout>}
-          <div className="table-wrap">
-            <table>
-              <thead><tr><th>Topic</th><th>What&apos;s happening</th><th>Your angle</th><th>Sources</th><th></th></tr></thead>
-              <tbody>
-                {market.keywords.map((k) => (
-                  <tr key={k.keyword}>
-                    <td style={{ minWidth: 140 }}><b>{k.keyword}</b>{k.hashtag && <div className="meta">{k.hashtag}</div>}</td>
-                    <td style={{ minWidth: 220 }}>{k.why}</td>
-                    <td style={{ minWidth: 200 }} className={k.angle ? "" : "faint"}>{k.angle || "No angle from your proof list"}</td>
-                    <td style={{ minWidth: 160 }}>
-                      {k.sources.map((s) => (
-                        <div key={s.url}>
-                          <a href={s.url} target="_blank" rel="noreferrer noopener" title={s.title}>{host(s.url)}</a>
-                          {s.date && <span className="meta"> · {s.date}</span>}
-                        </div>
-                      ))}
-                    </td>
-                    <td>
-                      <Link className="btn small" href={`/compose?trend=${encodeURIComponent(k.keyword)}`} title="Claude drafts a post connecting this topic to your own experience">
-                        <Icon name="pen" size={13} /> Draft post
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {market.notes && (
+            <details className="notes">
+              <summary>About these results ({market.keywords.length} topics)</summary>
+              <p>{market.notes} Check the sources before you rely on a claim.</p>
+            </details>
+          )}
+          <TopicGrid topics={market.keywords} picked={picked} toggle={toggle} full={full} kind="market" />
         </div>
       )}
     </div>

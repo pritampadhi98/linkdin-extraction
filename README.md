@@ -10,9 +10,10 @@ AI-drafted LinkedIn posts with a human approval gate.
 |---|---|
 | [`post-studio/`](post-studio/) | **The main app** (Next.js 15, React 19, TypeScript). UI, API routes, core library and the queue worker. Full guide: [post-studio/README.md](post-studio/README.md) |
 | [`bin/li-publish`](bin/li-publish) | The first prototype: a terminal script that humanizes a draft, scores it, asks y/N and posts through LinkedIn's Posts API |
+| [`docs/submission-upload/`](docs/submission-upload/) | The hackathon materials: demo video, presentation and one-pager |
 | [`drafts/`](drafts/) | Early drafts and their humanized `.clean.txt` versions |
 
-Post Studio uses the open-source [LinkedIn agent skill pack](https://github.com/Jakeschincariol/linkedin-agent-skill) by Jake Schincariol (MIT), installed into `~/.claude/skills` (li-post, li-human, li-profile and others).
+Post Studio uses the open-source [LinkedIn agent skill pack](https://github.com/Jakeschincariol/linkedin-agent-skill) by Jake Schincariol (MIT). The 11 skills are **bundled in [`post-studio/skills/`](post-studio/skills/)**, so there is nothing extra to install. If you have them in `~/.claude/skills`, your copy is used instead.
 
 ## How it connects
 
@@ -27,7 +28,7 @@ Post Studio uses the open-source [LinkedIn agent skill pack](https://github.com/
 ### 1. Prerequisites
 
 - Node.js 20+ and Python 3
-- The `li-human` and `li-post` skills in `~/.claude/skills`
+- Nothing to install for the skills: they are bundled in `post-studio/skills/`
 - `rsvg-convert` for image generation: `brew install librsvg`
 - Claude: an Anthropic API key, **or** the Claude Code CLI installed and signed in
 
@@ -72,7 +73,7 @@ npm run worker
 
 ### 6. Connect and configure
 
-1. Open **Settings → Connect LinkedIn**, sign in, and click **Allow**. Check that `w_member_social` is granted.
+1. Open **Onboarding → Connect LinkedIn**, sign in, and click **Allow**. Check that `w_member_social` is granted.
 2. Set your **approver name**, **posting slots**, **hashtag count** and **link placement**.
 3. Fill the **off-limits list** with client names, internal metrics and NDA terms.
 

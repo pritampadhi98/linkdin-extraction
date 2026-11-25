@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { loadConnection } from "@/lib/connection";
+import { hashText } from "@/lib/claims";
 import { runGate } from "@/lib/gate";
 import { isLive } from "@/lib/linkedin";
 import { IMAGE_TYPES, MAX_IMAGE_BYTES, type NewImage, lastHeartbeat, listQueue, postOne, savePost } from "@/lib/queue";
@@ -40,6 +41,7 @@ export async function POST(req: Request) {
   const text = String(form.get("text") ?? "");
   const approver = String(form.get("approver") ?? "").trim().slice(0, 80);
   const acceptReview = form.get("acceptReview") === "true";
+  const confirmed = String(form.get("confirmedClaims") ?? "").split("\n").filter(Boolean);
   const altText = String(form.get("altText") ?? "").trim();
   const removeImage = form.get("removeImage") === "true";
   const file = form.get("image");
@@ -94,10 +96,16 @@ export async function POST(req: Request) {
     if (gate.after.verdict !== "PASS" && !acceptReview)
       return bad(`The human score verdict is ${gate.after.verdict}. Tick "approve anyway" to override.`, 422, { gate });
 
+    const unconfirmed = gate.claims.filter((c) => !c.supported && !confirmed.includes(c.id));
+    if (unconfirmed.length)
+      return bad(`Confirm these numbers are true: ${unconfirmed.map((c) => c.id).join(", ")}.`, 422, { gate });
+
     const saved = await savePost(
       {
         id,
         text: gate.cleaned,
+        textHash: hashText(gate.cleaned),
+        confirmedClaims: gate.claims.filter((c) => confirmed.includes(c.id) || c.supported).map((c) => c.id),
         status: "queued",
         timing: action === "schedule" ? "exact" : action === "queue" ? "slot" : "now",
         scheduledAt: at.toISOString(),

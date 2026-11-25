@@ -3,9 +3,9 @@ import { readdir, readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
+import { skillDir } from "./skills";
 
 export const HOME = os.homedir();
-export const SKILLS = process.env.SKILLS_DIR ?? path.join(HOME, ".claude/skills");
 export const VOICE_FILE = process.env.VOICE_FILE ?? path.join(HOME, ".claude/linkedin/voice.md");
 export const MODEL = process.env.DRAFT_MODEL ?? "claude-opus-5-5";
 
@@ -54,5 +54,5 @@ export function checkStop(r: { stop_reason: string | null }) {
   if (r.stop_reason === "max_tokens") throw new ClaudeError("Claude's answer was cut off. Try again.", 502);
 }
 
-export const readSkill = (skill: string, file: string) => readFile(path.join(SKILLS, skill, file), "utf8");
+export const readSkill = (skill: string, file: string) => readFile(path.join(skillDir(skill), file), "utf8");
 export const readVoice = () => readFile(VOICE_FILE, "utf8").catch(() => "");

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { engagement, nextReading, postDate, startOf } from "@/lib/analytics";
 import { fmtAge } from "./components/LineChart";
+import EngageToday from "./components/EngageToday";
 import PostRow from "./components/PostRow";
 import { usePostActions } from "./components/postActions";
 import { useStudio, workerRunning } from "./components/providers";
@@ -36,10 +37,10 @@ export default function Overview() {
   const due = items.map((p) => ({ p, n: nextReading(p) })).filter((x) => x.n?.overdue);
 
   const setup = [
-    { done: !!data.account, label: "Connect LinkedIn", href: "/settings" },
-    { done: !!data.settings.approverName, label: "Set your approver name", href: "/settings" },
+    { done: !!data.account, label: "Connect LinkedIn", href: "/onboarding" },
+    { done: !!data.settings.approverName, label: "Set your approver name", href: "/onboarding" },
     { done: items.length > 0, label: "Write your first post", href: "/compose" },
-    { done: running, label: "Start the queue worker (npm run worker)", href: "/queue" },
+    { done: running, label: "Scheduler is running", href: "/queue" },
   ];
   const setupLeft = setup.filter((s) => !s.done);
 
@@ -83,8 +84,10 @@ export default function Overview() {
           </Callout>
         )}
         {queued.length > 0 && !running && (
-          <Callout kind="warn"><b>The queue worker isn&apos;t running</b>, so queued posts won&apos;t go out. Run <code>npm run worker</code> in the post-studio folder.</Callout>
+          <Callout kind="warn"><b>The scheduler isn&apos;t running</b>, so queued posts won&apos;t go out yet.</Callout>
         )}
+
+        <EngageToday />
 
         <div className="grid-4">
           <Stat label="Drafts" value={drafts.length} sub={<Link href="/posts?status=draft">Open drafts</Link>} />

@@ -12,6 +12,8 @@ export type Approval = {
   verdict: string;
   chars: number;
   firstLine: string;
+  textHash?: string; // fingerprint of the exact approved text
+  confirmedClaims?: string[]; // numbers the approver confirmed as true
 };
 
 export async function logApproval(a: Approval) {

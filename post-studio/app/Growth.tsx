@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { GrowthState, Plan, Score } from "@/lib/growth";
+import type { GrowthState, Plan, PlanBasis, Score } from "@/lib/growth";
+import { liSearchUrl } from "./components/ui";
 
 /** Tomorrow + offset, at HH:MM local time. */
 function slot(dayOffset: number, time: string): Date {
@@ -18,14 +20,11 @@ const Copy = ({ text }: { text: string }) => (
   </button>
 );
 
-export default function Growth({ onUsePost }: { onUsePost: (text: string, when: Date) => void }) {
-  const [pdf, setPdf] = useState<File | null>(null);
+/** Saved score and plan, shared by Onboarding (score) and Plan (posts). */
+function useGrowth() {
   const [score, setScore] = useState<(Score & { at: string; via?: string }) | null>(null);
-  const [plan, setPlan] = useState<(Plan & { at: string; via?: string }) | null>(null);
-  const [people, setPeople] = useState("");
-  const [busy, setBusy] = useState<"score" | "plan" | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
+  const [plan, setPlan] = useState<(Plan & { at: string; via?: string; basis?: PlanBasis }) | null>(null);
+  const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     fetch("/api/profile/score")
       .then((r) => r.json())
@@ -33,8 +32,23 @@ export default function Growth({ onUsePost }: { onUsePost: (text: string, when: 
         if (s.score) setScore(s.score);
         if (s.plan) setPlan(s.plan);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoaded(true));
   }, []);
+  return { score, setScore, plan, setPlan, loaded };
+}
+
+/** Onboarding: upload the profile PDF and get scored. */
+export function ProfileScore({ onScored }: { onScored?: (scored: boolean) => void }) {
+  const { score, setScore, loaded } = useGrowth();
+  const [pdf, setPdf] = useState<File | null>(null);
+  const [busy, setBusy] = useState<"score" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (loaded) onScored?.(!!score);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, score]);
 
   async function runScore() {
     setBusy("score");
@@ -53,32 +67,11 @@ export default function Growth({ onUsePost }: { onUsePost: (text: string, when: 
     }
   }
 
-  async function runPlan() {
-    setBusy("plan");
-    setError(null);
-    try {
-      const r = await fetch("/api/profile/plan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ people }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error ?? "Plan failed");
-      setPlan(d);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(null);
-    }
-  }
-
   const pct = score && score.visible_max ? Math.round((score.visible_score / score.visible_max) * 100) : 0;
 
   return (
-    <section className="card stack">
-      {/* ---- Step 2: Score ---- */}
+    <div>
       <div>
-        <h2>1 · Score my profile</h2>
         <p className="meta">
           LinkedIn&apos;s sign-in doesn&apos;t share your headline or experience, so upload your profile PDF: on your
           profile, More → Save to PDF.
@@ -113,97 +106,194 @@ export default function Growth({ onUsePost }: { onUsePost: (text: string, when: 
         )}
       </div>
 
-      {/* ---- Step 3: Increase ---- */}
-      <div>
-        <h2>2 · Improve</h2>
-        <p className="meta">
-          Claude rewrites your profile, plans four posts for next week, and builds an engagement list. Nothing is posted:
-          "Use this post" saves it as a draft and opens it in Publish, where it is checked and waits for your approval.
-        </p>
-        <label className="meta">Optional: people or companies you want to be visible to (one per line)</label>
-        <textarea style={{ minHeight: 70 }} value={people} onChange={(e) => setPeople(e.target.value)} />
-        <div className="row">
-          <button onClick={runPlan} disabled={busy !== null || !score}>
-            {busy === "plan" ? "Claude is planning (can take a minute)…" : plan ? "Rebuild plan" : "Increase"}
-          </button>
-          {!score && <span className="meta">Score your profile first.</span>}
-        </div>
-        {error && <p className="problem">{error}</p>}
+      {error && <p className="problem">{error}</p>}
+    </div>
+  );
+}
 
-        {plan && (
-          <div className="stack" style={{ marginTop: 12 }}>
-            <p className="meta">Built {new Date(plan.at).toLocaleString()}{plan.via ? ` via ${plan.via}` : ""}. {plan.notes}</p>
+export type SavedPlan = Plan & { at: string; via?: string; basis?: PlanBasis };
 
-            <div>
-              <h2>A · Profile rewrites (paste into LinkedIn yourself)</h2>
-              <p><b>Headline options</b></p>
-              <ol className="list">
-                {plan.profile.headlines.map((h) => <li key={h}>{h} <Copy text={h} /></li>)}
-              </ol>
-              <p><b>About</b> <Copy text={plan.profile.about} /></p>
-              <div className="diff">{plan.profile.about}</div>
-              <p><b>Experience</b></p>
-              {plan.profile.experience.map((x) => {
-                const t = `${x.summary}\n\n${x.bullets.map((b) => `- ${b}`).join("\n")}`;
-                return (
-                  <div key={x.role + x.dates} style={{ marginBottom: 8 }}>
-                    {x.role} · {x.company} <span className="meta">{x.dates}</span> <Copy text={t} />
-                    <div className="diff">{t}</div>
-                  </div>
-                );
-              })}
-              <p><b>Pin these skills:</b> {plan.profile.top_skills.join(" · ")}</p>
-              <ul className="list">{plan.profile.other_fixes.map((f) => <li key={f}>{f}</li>)}</ul>
-            </div>
+/** One loaded weekly plan, shared by the Plan page's tabs (rebuild in one tab updates all). */
+export function usePlan() {
+  const { score, plan, setPlan, loaded } = useGrowth();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  /** Builds a plan. With no options it repeats what the current plan was built from. */
+  async function build(opts?: PlanBasis) {
+    setBusy(true);
+    setError(null);
+    try {
+      const body = opts ?? plan?.basis ?? {};
+      const r = await fetch("/api/profile/plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error ?? "Plan failed");
+      setPlan(d);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return { score, plan, loaded, busy, error, build };
+}
+export type PlanState = ReturnType<typeof usePlan>;
 
-            <div>
-              <h2>B · Next week&apos;s posts</h2>
-              {[...plan.week]
-                .sort((a, b) => slot(a.day_offset, a.time).getTime() - slot(b.day_offset, b.time).getTime())
-                .map((p, i) => {
-                  const when = slot(p.day_offset, p.time);
-                  return (
-                    <div key={i} className="panel" style={{ marginBottom: 8 }}>
-                      <div className="row" style={{ marginTop: 0, justifyContent: "space-between" }}>
-                        <span>
-                          <b>{when.toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</b>
-                          {" · "}{p.type} · #{p.hook_id} {p.hook_name}
-                        </span>
-                        <button onClick={() => onUsePost(p.draft, when)}>Use this post →</button>
-                      </div>
-                      <p className="meta" style={{ margin: "6px 0" }}>{p.angle}</p>
-                      {p.placeholders.length > 0 && (
-                        <p className="warning" style={{ margin: "6px 0" }}>Fill in first: {p.placeholders.join(" · ")}</p>
-                      )}
-                      <div className="diff" style={{ maxHeight: 160 }}>{p.draft}</div>
-                    </div>
-                  );
-                })}
-            </div>
-
-            <div>
-              <h2>C · Engagement ({plan.engagement.daily_minutes} min a day, before you post)</h2>
-              <table>
-                <thead><tr><th>Who</th><th>How many</th><th>Find them</th><th>What to add</th></tr></thead>
-                <tbody>
-                  {plan.engagement.groups.map((g) => (
-                    <tr key={g.kind}>
-                      <td><b>{g.kind}</b><div className="meta">{g.who}</div></td>
-                      <td>{g.count}</td>
-                      <td className="meta">{g.search_terms.join(" · ")}</td>
-                      <td className="meta">{g.comment_angle}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {plan.engagement.named.length > 0 && (
-                <ul className="list">{plan.engagement.named.map((n) => <li key={n.name}><b>{n.name}</b>: {n.why}</li>)}</ul>
-              )}
-              <p className="meta">Comment by hand. Automated comments are what get accounts restricted.</p>
-            </div>
-          </div>
-        )}
+/** The build / rebuild bar, with Claude's notes folded away. */
+export function PlanBuilder({ p, what }: { p: PlanState; what: string }) {
+  if (p.loaded && !p.score)
+    return (
+      <div className="empty-hint">
+        <b>Score your profile first.</b> Claude builds your week from it.{" "}
+        <Link href="/onboarding#profile" className="btn small">Go to Onboarding → Your profile</Link>
       </div>
-    </section>
+    );
+  return (
+    <div className="plan-builder">
+      <div className="row" style={{ marginTop: 0 }}>
+        <button onClick={() => p.build()} disabled={p.busy || !p.score} className={p.plan ? "secondary" : ""}>
+          {p.busy ? "Claude is planning (about a minute)…" : p.plan ? "Rebuild my plan" : "Plan my week"}
+        </button>
+        <span className="meta">
+          {p.plan ? `Built ${new Date(p.plan.at).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}.` : `Builds ${what} from your profile score and the people you listed in Onboarding.`} Nothing is posted.
+        </span>
+      </div>
+      {p.error && <p className="problem">{p.error}</p>}
+      {p.plan?.notes && (
+        <details className="notes">
+          <summary>Claude&apos;s notes on this plan</summary>
+          <p>{p.plan.notes}</p>
+        </details>
+      )}
+    </div>
+  );
+}
+
+/** Next week's posts as cards: when, what kind, the angle, blanks to fill, and the draft. */
+export function WeekPosts({ plan, onUsePost }: { plan: SavedPlan; onUsePost: (text: string, when: Date) => void }) {
+  const posts = [...plan.week].sort((a, b) => slot(a.day_offset, a.time).getTime() - slot(b.day_offset, b.time).getTime());
+  return (
+    <div className="week-list">
+      {posts.map((p, i) => {
+        const when = slot(p.day_offset, p.time);
+        return (
+          <article key={i} className="week-card">
+            <div className="week-when">
+              <b>{when.toLocaleDateString(undefined, { weekday: "short" })}</b>
+              <span>{when.toLocaleDateString(undefined, { day: "numeric", month: "short" })}</span>
+              <span className="meta">{when.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}</span>
+            </div>
+            <div className="week-body">
+              <div className="row tight" style={{ marginTop: 0 }}>
+                <span className="tag">{p.type}</span>
+                <span className="meta">Hook #{p.hook_id} · {p.hook_name}</span>
+              </div>
+              <p className="week-angle">{p.angle}</p>
+              {p.placeholders.length > 0 && (
+                <details className="blanks">
+                  <summary>{p.placeholders.length} blank{p.placeholders.length === 1 ? "" : "s"} to fill before posting</summary>
+                  <ul className="list">{p.placeholders.map((b) => <li key={b}>{b}</li>)}</ul>
+                </details>
+              )}
+              <details className="draft-preview">
+                <summary>Show draft</summary>
+                <div className="diff" style={{ maxHeight: 260 }}>{p.draft}</div>
+              </details>
+            </div>
+            <div className="week-act">
+              <button onClick={() => onUsePost(p.draft, when)}>Use this post →</button>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Who to engage with: group cards with one-click LinkedIn searches, plus the people you named. */
+export function EngagePlan({ plan }: { plan: SavedPlan }) {
+  const e = plan.engagement;
+  return (
+    <div className="stack">
+      <div className="engage-groups">
+        {e.groups.map((g, i) => (
+          <div key={`${g.kind}-${i}`} className="engage-group">
+            <div className="row tight" style={{ marginTop: 0, justifyContent: "space-between" }}>
+              <b style={{ textTransform: "capitalize" }}>{g.kind}</b>
+              <span className="badge plain b-queued">{g.count} a day</span>
+            </div>
+            <p className="meta" style={{ margin: "6px 0 10px" }}>{g.who}</p>
+            <div className="eg-label">Find them</div>
+            <div className="search-chips">
+              {g.search_terms.map((t) => (
+                <a key={t} className="search-chip" href={liSearchUrl(t)} target="_blank" rel="noreferrer noopener" title={`Search LinkedIn posts for "${t}"`}>{t} ↗</a>
+              ))}
+            </div>
+            <div className="eg-label" style={{ marginTop: 10 }}>What to add</div>
+            <p style={{ margin: 0, fontSize: 13.5 }}>{g.comment_angle}</p>
+          </div>
+        ))}
+      </div>
+      {e.named.length > 0 && (
+        <div>
+          <div className="eg-label">People and companies you named</div>
+          <div className="named-list">
+            {e.named.map((n) => (
+              <div key={n.name} className="named-item">
+                <div><b>{n.name}</b><div className="meta">{n.why}</div></div>
+                <a className="search-chip" href={liSearchUrl(n.name)} target="_blank" rel="noreferrer noopener" title={`Search LinkedIn posts by or about ${n.name}`}>Find their posts ↗</a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <p className="meta" style={{ margin: 0 }}>About {e.daily_minutes} minutes a day, before you post. Links open LinkedIn in your browser; you comment by hand.</p>
+    </div>
+  );
+}
+
+/** Profile rewrites to paste into LinkedIn yourself. */
+export function ProfileFixes({ plan }: { plan: SavedPlan }) {
+  const pr = plan.profile;
+  return (
+    <div className="stack">
+      <div>
+        <div className="eg-label">Headline options</div>
+        <div className="stack" style={{ gap: 8 }}>
+          {pr.headlines.map((h) => (
+            <div key={h} className="copy-row"><span>{h}</span><Copy text={h} /></div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <div className="row tight" style={{ marginTop: 0, justifyContent: "space-between" }}><div className="eg-label">About</div><Copy text={pr.about} /></div>
+        <details className="draft-preview" open>
+          <summary>Show About text</summary>
+          <div className="diff" style={{ maxHeight: 280 }}>{pr.about}</div>
+        </details>
+      </div>
+      <div>
+        <div className="eg-label">Experience</div>
+        {pr.experience.map((x) => {
+          const t = `${x.summary}\n\n${x.bullets.map((b) => `- ${b}`).join("\n")}`;
+          return (
+            <details key={x.role + x.dates} className="draft-preview">
+              <summary>{x.role} · {x.company} <span className="meta">{x.dates}</span></summary>
+              <div className="row tight" style={{ justifyContent: "flex-end" }}><Copy text={t} /></div>
+              <div className="diff">{t}</div>
+            </details>
+          );
+        })}
+      </div>
+      <div>
+        <div className="eg-label">Pin these skills</div>
+        <div className="chips">{pr.top_skills.map((k) => <span key={k} className="chip" style={{ cursor: "default" }}>{k}</span>)}</div>
+      </div>
+      {pr.other_fixes.length > 0 && (
+        <div>
+          <div className="eg-label">Other fixes</div>
+          <ul className="list">{pr.other_fixes.map((f) => <li key={f}>{f}</li>)}</ul>
+        </div>
+      )}
+    </div>
   );
 }

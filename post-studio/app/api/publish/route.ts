@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { runGate } from "@/lib/gate";
 import { isLive, publishPost } from "@/lib/linkedin";
+import { hashText } from "@/lib/claims";
 import { logApproval, readApprovals } from "@/lib/log";
 
 export const runtime = "nodejs";
@@ -31,6 +32,11 @@ export async function POST(req: Request) {
     );
   }
 
+  const confirmed: string[] = Array.isArray((body as { confirmedClaims?: string[] }).confirmedClaims) ? (body as { confirmedClaims: string[] }).confirmedClaims : [];
+  const unconfirmed = gate.claims.filter((c) => !c.supported && !confirmed.includes(c.id));
+  if (unconfirmed.length)
+    return NextResponse.json({ error: `Confirm these numbers are true: ${unconfirmed.map((c) => c.id).join(", ")}.`, gate }, { status: 422 });
+
   const live = isLive();
   try {
     const { id } = live ? await publishPost(gate.cleaned) : { id: null };
@@ -43,6 +49,8 @@ export async function POST(req: Request) {
       verdict: gate.after.verdict,
       chars: gate.cleaned.length,
       firstLine: gate.cleaned.split("\n")[0].slice(0, 120),
+      textHash: hashText(gate.cleaned),
+      confirmedClaims: gate.claims.filter((c) => confirmed.includes(c.id) || c.supported).map((c) => c.id),
     });
     return NextResponse.json({ ok: true, live, id, text: gate.cleaned });
   } catch (e) {

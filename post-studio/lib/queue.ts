@@ -7,6 +7,7 @@ import { historyOf } from "./analytics";
 import { checkCompliance } from "./compliance";
 import { isLive, publishPost } from "./linkedin";
 import { logApproval } from "./log";
+import { hashText } from "./claims";
 import { loadSettings } from "./settings";
 
 const DATA = path.join(process.cwd(), "data");
@@ -66,6 +67,8 @@ export type QueueItem = {
   error?: string;
   metrics?: Metrics; // the latest snapshot (kept so totals stay simple)
   history?: Snapshot[]; // every reading you've entered, oldest first
+  textHash?: string; // fingerprint of the exact text the approver confirmed
+  confirmedClaims?: string[]; // numbers the approver ticked as true
   links?: string[]; // reference links (for a first comment, or already in the text)
 };
 
@@ -134,6 +137,8 @@ export type SaveInput = {
   score: number | null;
   verdict: string | null;
   links?: string[];
+  textHash?: string;
+  confirmedClaims?: string[];
 };
 
 /**
@@ -168,6 +173,8 @@ export async function savePost(input: SaveInput, image?: { set?: NewImage; remov
     verdict: input.verdict,
     image: img,
     links: input.links ?? existing?.links ?? [],
+    textHash: input.textHash,
+    confirmedClaims: input.confirmedClaims,
     error: undefined,
     updatedAt: now,
   };
@@ -343,6 +350,8 @@ export async function postOne(id: string): Promise<QueueItem> {
       verdict: item.verdict ?? "",
       chars: item.text.length,
       firstLine: item.text.split(/\r?\n/)[0].slice(0, 120),
+      textHash: item.textHash ?? hashText(item.text),
+      confirmedClaims: item.confirmedClaims ?? [],
     });
     return done!;
   } catch (e) {

@@ -187,3 +187,6 @@ export function localInput(d: Date) {
 }
 
 export const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+/** A LinkedIn post search for these words, opened in the browser. Nothing is read or posted by Post Studio. */
+export const liSearchUrl = (q: string) => `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(q)}`;

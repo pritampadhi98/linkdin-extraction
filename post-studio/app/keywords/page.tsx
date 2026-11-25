@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { buckets, keywordStats, keywords, postDate, type KeywordStat, type Period } from "@/lib/analytics";
 import BarChart from "../components/BarChart";
-import MarketCard from "./MarketCard";
 import { useStudio } from "../components/providers";
 import { RangeControls, useRange } from "../components/useRange";
 import { EmptyState, Icon, PageHead, Skeleton, StatusBadge, firstLine, fmtNum, fmtWhen } from "../components/ui";
@@ -56,9 +55,7 @@ function Keywords() {
 
   return (
     <div className="page">
-      <PageHead title="Keywords" sub="What your audience is talking about now, and the words and hashtags in your own posts." />
-
-      <MarketCard />
+      <PageHead title="Keywords" sub="The words and hashtags in your own posts, and how they perform." />
 
       <h2 style={{ margin: "8px 0 12px" }}>Your posts</h2>
 

@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   const { clientId, redirectUri } = await oauthApp();
   if (!clientId) {
-    return NextResponse.redirect(new URL("/settings?linkedin=missing-app", req.url));
+    return NextResponse.redirect(new URL("/onboarding?linkedin=missing-app", req.url));
   }
   const state = randomBytes(16).toString("hex");
   const url = new URL("https://www.linkedin.com/oauth/v2/authorization");
